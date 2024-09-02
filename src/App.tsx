@@ -1,19 +1,21 @@
-import React from "react";
-import StockQuote from "./components/StockQuote";
+import type { AppProps } from 'next/app';
+import { Authenticator } from '@aws-amplify/ui-react';
+import { Amplify } from 'aws-amplify';
+import outputs from '@/amplify_outputs.json';
+import '@aws-amplify/ui-react/styles.css';
 
-const App: React.FC = () => {
+Amplify.configure(outputs);
+
+export default function App({ Component, pageProps }: AppProps) {
   return (
-    <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-900 mb-8">
-            Alpha Vantage Stock Quotation App
-          </h1>
-          <StockQuote />
-        </div>
-      </div>
-    </div>
+    <Authenticator>
+      {({ signOut, user }) => (
+        <main>
+          <h1>Hello {user?.username}</h1>
+          <button onClick={signOut}>Sign out</button>
+          <Component {...pageProps} />
+        </main>
+      )}
+    </Authenticator>
   );
 };
-
-export default App;
