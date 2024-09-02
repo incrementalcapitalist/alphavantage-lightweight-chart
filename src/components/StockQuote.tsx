@@ -1,9 +1,13 @@
-// Import necessary React hooks and types from react
+/**
+ * @file StockQuote.tsx
+ * @version 1.2.0
+ * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart
+ */
+
 import React, { useState, useEffect, useRef } from "react";
-// Import required types and functions from lightweight-charts
 import { createChart, IChartApi, ISeriesApi } from "lightweight-charts";
 
-// Add type declarations for URL and URLSearchParams to the global scope
+// Global type declarations
 declare global {
   interface Window {
     URL: typeof URL;
@@ -11,18 +15,16 @@ declare global {
   }
 }
 
-// Define type for API errors
+// Type definitions
 type APIError = {
   message: string;
   code?: string;
 };
 
-// Interface for the stock quote data
 interface StockData {
   [key: string]: string;
 }
 
-// Interface for the AlphaVantage API response
 interface AlphaVantageResponse {
   'Meta Data': {
     '1. Information': string;
@@ -48,13 +50,11 @@ interface AlphaVantageResponse {
   };
 }
 
-// Interface for the chart data point
 interface ChartDataPoint {
   time: string;
   value: number;
 }
 
-// Interface for the Heikin-Ashi candle data point
 interface HeikinAshiDataPoint {
   time: string;
   open: number;
@@ -63,29 +63,30 @@ interface HeikinAshiDataPoint {
   close: number;
 }
 
-// Define the StockQuote functional component
+/**
+ * StockQuote Component
+ * @returns {JSX.Element} The rendered StockQuote component
+ */
 const StockQuote: React.FC = () => {
-  // State for user input (stock symbol)
+  // State hooks
   const [symbol, setSymbol] = useState<string>("");
-  // State for API response data
   const [stockData, setStockData] = useState<StockData | null>(null);
-  // State for error messages
   const [error, setError] = useState<APIError | null>(null);
-  // State for loading status
   const [loading, setLoading] = useState<boolean>(false);
-  // State for historical data
   const [historicalData, setHistoricalData] = useState<ChartDataPoint[]>([]);
-  // State for Heikin-Ashi data
   const [heikinAshiData, setHeikinAshiData] = useState<HeikinAshiDataPoint[]>([]);
 
-  // Ref for the chart container div
+  // Ref hooks
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  // Ref for the chart instance
   const chartRef = useRef<IChartApi | null>(null);
-  // Ref for the Heikin-Ashi series
   const heikinAshiSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
 
-  // Function to construct API URL with parameters
+  /**
+   * Constructs API URL with parameters
+   * @param {string} baseUrl - The base URL of the API
+   * @param {Record<string, string>} params - The parameters to be added to the URL
+   * @returns {string} The constructed URL
+   */
   const constructApiUrl = (baseUrl: string, params: Record<string, string>): string => {
     const url = new URL(baseUrl);
     Object.entries(params).forEach(([key, value]) => {
@@ -94,42 +95,39 @@ const StockQuote: React.FC = () => {
     return url.toString();
   };
 
-  // Function to fetch stock data from the API
+  /**
+   * Fetches stock data from the API
+   */
   const fetchStockData = async () => {
-    // Validate user input
+    // Input validation
     if (!symbol.trim()) {
       setError({ message: "Please enter a stock symbol" });
       return;
     }
 
-    // Reset states before fetching
+    // Reset states
     setLoading(true);
     setError(null);
     setStockData(null);
 
     try {
-      // Construct the API URL for global quote
+      // Construct API URL for global quote
       const apiUrl = constructApiUrl('https://www.alphavantage.co/query', {
         function: 'GLOBAL_QUOTE',
         symbol,
         apikey: import.meta.env.VITE_ALPHA_VANTAGE_API_KEY,
       });
 
-      // Fetch data from Alpha Vantage API
+      // Fetch data
       const response = await fetch(apiUrl);
-
-      // Check for HTTP errors
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Parse the JSON response
       const data: AlphaVantageResponse = await response.json();
-
-      // Log the response for debugging
       console.log("Global Quote Response:", data);
 
-      // Check for API errors or empty responses
+      // Error handling
       if ('Error Message' in data) {
         throw new Error(data['Error Message'] as string);
       }
@@ -139,52 +137,43 @@ const StockQuote: React.FC = () => {
         throw new Error("No data found for this symbol");
       }
 
-      // Set the stock data state with the received quote
       setStockData(quote);
-
-      // Fetch historical data for the symbol
       await fetchHistoricalData(symbol);
     } catch (err) {
-      // Handle different types of errors
       handleError(err);
     } finally {
-      // Always set loading to false when done
       setLoading(false);
     }
   };
 
-  // Function to fetch historical data
+  /**
+   * Fetches historical data for the given symbol
+   * @param {string} symbol - The stock symbol
+   */
   const fetchHistoricalData = async (symbol: string): Promise<void> => {
     try {
-      // Construct the API URL for TIME_SERIES_DAILY_ADJUSTED
+      // Construct API URL for TIME_SERIES_DAILY_ADJUSTED
       let apiUrl = constructApiUrl('https://www.alphavantage.co/query', {
         function: 'TIME_SERIES_DAILY_ADJUSTED',
         symbol,
         apikey: import.meta.env.VITE_ALPHA_VANTAGE_API_KEY,
       });
 
-      // Fetch data from the API
       let response = await fetch(apiUrl);
-      // Check for HTTP errors
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Parse the JSON response
       let data: AlphaVantageResponse = await response.json();
-
-      // Log the response for debugging
       console.log("Historical Data Response:", data);
 
-      // Check for API errors
       if ('Error Message' in data) {
         throw new Error(data['Error Message'] as string);
       }
 
-      // Extract the time series data
       let timeSeries = data['Time Series (Daily)'];
       if (!timeSeries) {
-        // If no data found, try another endpoint
+        // Fallback to TIME_SERIES_DAILY if ADJUSTED is not available
         apiUrl = constructApiUrl('https://www.alphavantage.co/query', {
           function: 'TIME_SERIES_DAILY',
           symbol,
@@ -209,13 +198,9 @@ const StockQuote: React.FC = () => {
         }
       }
 
-      // Calculate Heikin-Ashi data
       const heikinAshiData: HeikinAshiDataPoint[] = calculateHeikinAshi(timeSeries);
-
-      // Update the state with the processed Heikin-Ashi data
       setHeikinAshiData(heikinAshiData);
     } catch (error) {
-      // Handle and rethrow errors
       if (error instanceof Error) {
         throw new Error(`Failed to fetch historical data: ${error.message}`);
       }
@@ -223,13 +208,16 @@ const StockQuote: React.FC = () => {
     }
   };
 
-  // Function to calculate Heikin-Ashi candles
+  /**
+   * Calculates Heikin-Ashi candles from time series data
+   * @param {AlphaVantageResponse['Time Series (Daily)']} timeSeries - The time series data
+   * @returns {HeikinAshiDataPoint[]} The calculated Heikin-Ashi data
+   */
   const calculateHeikinAshi = (timeSeries: AlphaVantageResponse['Time Series (Daily)']): HeikinAshiDataPoint[] => {
     const heikinAshiData: HeikinAshiDataPoint[] = [];
     let prevHA: HeikinAshiDataPoint | null = null;
 
     Object.entries(timeSeries).forEach(([date, values], index) => {
-      // Parse OHLC values
       const open = parseFloat(values['1. open']);
       const high = parseFloat(values['2. high']);
       const low = parseFloat(values['3. low']);
@@ -238,20 +226,16 @@ const StockQuote: React.FC = () => {
       let haOpen, haClose, haHigh, haLow;
 
       if (index === 0) {
-        // For the first candle, use regular values
         haOpen = open;
         haClose = close;
       } else {
-        // Calculate Heikin-Ashi values
         haOpen = (prevHA!.open + prevHA!.close) / 2;
         haClose = (open + high + low + close) / 4;
       }
 
-      // Calculate Heikin-Ashi high and low
       haHigh = Math.max(high, haOpen, haClose);
       haLow = Math.min(low, haOpen, haClose);
 
-      // Create Heikin-Ashi candle
       const haCandle: HeikinAshiDataPoint = {
         time: date,
         open: haOpen,
@@ -264,10 +248,13 @@ const StockQuote: React.FC = () => {
       prevHA = haCandle;
     });
 
-    return heikinAshiData.reverse(); // Reverse to get chronological order
+    return heikinAshiData.reverse();
   };
 
-  // Function to handle errors
+  /**
+   * Handles and sets errors
+   * @param {unknown} err - The error to handle
+   */
   const handleError = (err: unknown) => {
     if (err instanceof Error) {
       setError({ message: err.message });
@@ -278,69 +265,69 @@ const StockQuote: React.FC = () => {
     }
   };
 
-  // Effect to create and update the chart when Heikin-Ashi data changes
+  // Effect hook for creating and updating the chart
   useEffect(() => {
     if (heikinAshiData.length > 0 && chartContainerRef.current) {
-      // If the chart doesn't exist, create it
       if (!chartRef.current) {
         chartRef.current = createChart(chartContainerRef.current, {
           width: chartContainerRef.current.clientWidth,
           height: 400,
           layout: {
-            background: { color: 'transparent' },
-            textColor: 'rgba(0, 0, 0, 0.9)',
+            background: { color: '#111827' }, // Dark background
+            textColor: '#C4B5FD', // Light purple text
           },
           grid: {
-            vertLines: { visible: false },
-            horzLines: { visible: false },
+            vertLines: { color: '#1F2937' }, // Darker grid lines
+            horzLines: { color: '#1F2937' },
           },
           timeScale: {
-            visible: false,
+            borderColor: '#374151', // Dark border
           },
           rightPriceScale: {
-            visible: false,
-          },
-          leftPriceScale: {
-            visible: false,
+            borderColor: '#374151',
           },
         });
       }
 
-      // If Heikin-Ashi series doesn't exist, create it
       if (!heikinAshiSeriesRef.current) {
         heikinAshiSeriesRef.current = chartRef.current.addCandlestickSeries({
-          upColor: '#26a69a',
-          downColor: '#ef5350',
-          borderVisible: false,
-          wickUpColor: '#26a69a',
-          wickDownColor: '#ef5350',
+          upColor: '#FFFFFF', // White for up days
+          downColor: '#8B5CF6', // Purple for down days
+          borderUpColor: '#FFFFFF',
+          borderDownColor: '#8B5CF6',
+          wickUpColor: '#FFFFFF',
+          wickDownColor: '#8B5CF6',
         });
       }
 
-      // Set the data for the Heikin-Ashi series
       heikinAshiSeriesRef.current.setData(heikinAshiData);
-
-      // Fit the chart content
       chartRef.current.timeScale().fitContent();
     }
   }, [heikinAshiData]);
 
-  // Handle 'Enter' key press in the input field
+  /**
+   * Handles key press events in the input field
+   * @param {React.KeyboardEvent<HTMLInputElement>} event - The key press event
+   */
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       fetchStockData();
     }
   };
 
-  // Format the key names for display
+  /**
+   * Formats the key names for display
+   * @param {string} key - The key to format
+   * @returns {string} The formatted key
+   */
   const formatKey = (key: string): string => {
     return key.split(". ")[1]?.replace(/([A-Z])/g, " $1").trim() || key;
   };
 
   // Render the component
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
+    <div className="bg-gray-900 text-purple-300 shadow-md rounded-lg p-6">
+      <h2 className="text-2xl font-bold mb-4 text-purple-200">
         Stock Quote Fetcher
       </h2>
       <div className="mb-4">
@@ -350,51 +337,46 @@ const StockQuote: React.FC = () => {
           onChange={(e) => setSymbol(e.target.value.toUpperCase())}
           onKeyPress={handleKeyPress}
           placeholder="Enter stock symbol (e.g., AAPL)"
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full p-2 bg-gray-800 border border-gray-700 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-400"
           aria-label="Stock Symbol"
         />
       </div>
       <button
         onClick={fetchStockData}
         disabled={loading}
-        className="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50"
+        className="w-full bg-purple-600 text-white p-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50"
         aria-busy={loading}
       >
         {loading ? "Loading..." : "Fetch Quote"}
       </button>
-      {/* Display error message if there is an error */}
       {error && (
-        <p className="mt-4 text-red-500" role="alert">
+        <p className="mt-4 text-red-400" role="alert">
           Error: {error.message}
         </p>
       )}
-      {/* Display the chart */}
-      <div className="mt-6 p-4 bg-gray-100 rounded-lg shadow-inner">
+      <div className="mt-6 p-4 bg-gray-800 rounded-lg shadow-inner">
         <div ref={chartContainerRef} className="w-full h-[400px]"></div>
       </div>
-      {/* Display stock data if it exists */}
       {stockData && (
         <div className="mt-6 overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-700">
+            <thead className="bg-gray-800">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-purple-300 uppercase tracking-wider">
                   Field
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-purple-300 uppercase tracking-wider">
                   Value
                 </th>
               </tr>
             </thead>
-            {/* Table body */}
-            <tbody className="bg-white divide-y divide-gray-200">
-              {/* Map over stockData entries to create table rows */}
+            <tbody className="bg-gray-900 divide-y divide-gray-800">
               {Object.entries(stockData).map(([key, value]) => (
                 <tr key={key}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-200">
                     {formatKey(key)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-purple-300">
                     {value}
                   </td>
                 </tr>
@@ -407,5 +389,4 @@ const StockQuote: React.FC = () => {
   );
 };
 
-// Export the StockQuote component as the default export
 export default StockQuote;
