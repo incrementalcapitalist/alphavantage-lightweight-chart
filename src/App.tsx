@@ -1,6 +1,6 @@
 /**
  * @file App.tsx
- * @version 1.1.0
+ * @version 1.2.0
  * @description Main application component with authentication and stock quote functionality
  */
 
@@ -10,8 +10,14 @@ import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 import StockQuote from "./components/StockQuote";
 
-// TODO: Import and configure Amplify here
-// Amplify.configure({ ... });
+// Configure Amplify
+Amplify.configure({
+  Auth: {
+    region: 'us-east-1', // replace with your region if different
+    userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
+    userPoolWebClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
+  }
+});
 
 /**
  * Main application component
