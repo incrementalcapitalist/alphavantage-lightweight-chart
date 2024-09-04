@@ -1,17 +1,15 @@
 /**
  * @file App.tsx
- * @version 3.5.0
+ * @version 3.5.1
  * @description Main application component with enhanced UI, custom Amplify Authenticator, and updated styling
  */
 
-// Import Google Font
-import '@fontsource/pt-sans-narrow';
-
 // Import necessary dependencies
 import React from "react";
-import { Authenticator, ThemeProvider, View, Heading, Button, useTheme } from '@aws-amplify/ui-react';
+import { Authenticator, ThemeProvider, View, Heading, Button } from '@aws-amplify/ui-react';
 import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
+import '@fontsource/pt-sans-narrow';
 import StockQuote from "./components/StockQuote";
 import theme from './AmplifyTheme';
 
@@ -45,8 +43,12 @@ const App: React.FC = () => {
               // Custom header component for the Authenticator
               Header() {
                 return (
-                  <View className="bg-white w-full py-4 flex items-center justify-center">
-                    <img src="/logo512.png" alt="App Logo" className="h-12 w-12 mr-2" />
+                  <View className="bg-white w-full py-4 flex flex-col items-center justify-center">
+                    <img 
+                      src="./logo512.png"
+                      alt="App Logo" 
+                      className="h-24 w-24 mb-4" 
+                    />
                     <Heading
                       level={3}
                       className="text-center text-2xl text-emerald-600"
@@ -76,9 +78,13 @@ const App: React.FC = () => {
             {({ signOut, user }) => (
               // Container for authenticated content
               <View className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                {/* Display icon/logo */}
-                <img src="/logo512.png" alt="App Logo" className="h-12 w-12 mr-2" />
-                {/* StockQuote component for displaying stock information */}
+                <View className="flex justify-center mb-6"> {/* Display icon/logo */}
+                  <img 
+                    src="./logo512.png"
+                    alt="App Logo" 
+                    className="h-24 w-24" 
+                  />
+                </View>
                 <StockQuote />
                 {/* Sign out button */}
                 <Button
