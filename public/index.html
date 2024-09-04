@@ -1,38 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Specify the character encoding for the HTML document -->
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8" /> <!-- Specify the character encoding for the HTML document -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- Set the viewport for responsive design -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" /> <!-- Set the favicon -->
+    <title>AlphaVantage Lightweight Charts</title>
+    <meta name="description" content="Incremental Capital LLC - AlphaVantage API-Powered TradingView Lightweight Charts" /> <!-- Add a description for search engines -->
+    <link rel="preconnect" href="https://www.alphavantage.co" /> <!-- Preconnect to the API domain to improve performance -->
+    <meta name="theme-color" content="#111827" /> <!-- Add theme-color for mobile browsers -->
+    <link rel="manifest" href="/manifest.json" /> <!-- Link to the manifest file for PWA support -->
     
-    <!-- Set the viewport for responsive design -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- Set the favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
-    
-    <!-- Set the title of the page -->
-    <title>Incremental Capital LLC - AlphaVantage API-Powered TradingView Lightweight Charts</title>
-    
-    <!-- Add a description for search engines -->
-    <meta name="description" content="Incremental Capital LLC - AlphaVantage API-Powered TradingView Lightweight Charts" />
-    
-    <!-- Preconnect to the API domain to improve performance -->
-    <link rel="preconnect" href="https://www.alphavantage.co" />
-    
-    <!-- Add theme-color for mobile browsers -->
-    <meta name="theme-color" content="#000000" />
-    
-    <!-- Link to the manifest file for PWA support -->
-    <link rel="manifest" href="/manifest.json" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://quotation.incremental.capital/" />
+    <meta property="og:title" content="AlphaVantage Lightweight Charts" />
+    <meta property="og:description" content="Incremental Capital LLC - AlphaVantage API-Powered TradingView Lightweight Charts" />
+    <meta property="og:image" content="https://quotation.incremental.capital/og-image.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://quotation.incremental.capital/" />
+    <meta property="twitter:title" content="AlphaVantage Lightweight Charts" />
+    <meta property="twitter:description" content="Incremental Capital LLC - AlphaVantage API-Powered TradingView Lightweight Charts" />
+    <meta property="twitter:image" content="https://quotation.incremental.capital/twitter-image.png" />
   </head>
   <body>
-    <!-- Provide a message for users with JavaScript disabled -->
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    
-    <!-- The root div where React will mount the app -->
-    <div id="root"></div>
-    
-    <!-- Script tag for Vite to inject the compiled JavaScript -->
-    <script type="module" src="../src/main.tsx"></script>
+    <noscript>You need to enable JavaScript to run this app.</noscript> <!-- Provide a message for users with JavaScript disabled -->
+    <div id="root"></div> <!-- The root div where React will mount the app -->
+    <script type="module" src="../src/main.tsx"></script> <!-- Script tag for Vite to inject the compiled JavaScript -->
   </body>
 </html>
