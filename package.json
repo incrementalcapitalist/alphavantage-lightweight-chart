@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.2.0",
+    "@fontsource/pt-sans-narrow": "^5.0.22",
     "aws-amplify": "^6.5.3",
     "lightweight-charts": "4.2.0",
     "react": "^18.2.0",
