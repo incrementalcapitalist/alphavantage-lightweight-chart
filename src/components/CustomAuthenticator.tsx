@@ -1,8 +1,9 @@
 /**
  * @file CustomAuthenticator.tsx
- * @version 1.5.0
+ * @version 1.6.0
  * @description Custom Authenticator component with additional styling and functionality,
  * aligned with the latest Cognito User Pool configuration and Amplify UI React library.
+ * This version addresses build errors related to type definitions and useAuthenticator hook.
  */
 
 // Import necessary components and types from React and Amplify UI
@@ -23,6 +24,7 @@ import {
   CheckboxField,
   AuthenticatorProps,
 } from '@aws-amplify/ui-react';
+import { AuthUser } from '@aws-amplify/core'; // Import AuthUser type
 
 // Define custom components for the Authenticator
 const components = {
@@ -85,7 +87,7 @@ const components = {
     // Footer for the SignIn form
     Footer() {
       // Use the useAuthenticator hook to access authentication functions
-      const { toResetPassword } = useAuthenticator();
+      const { toResetPassword } = useAuthenticator((context) => [context.toResetPassword]);
       return (
         // Create a container for the footer with centered text
         <View textAlign="center">
@@ -96,7 +98,7 @@ const components = {
               fontWeight="normal"
               // Navigate to reset password page if the function is available
               onClick={() => {
-                if (typeof toResetPassword === 'function') {
+                if (toResetPassword) {
                   toResetPassword();
                 } else {
                   console.log('Reset password function not available');
@@ -167,7 +169,7 @@ const components = {
     // Footer for the SignUp form
     Footer() {
       // Use the useAuthenticator hook to access authentication functions
-      const { toSignIn } = useAuthenticator();
+      const { toSignIn } = useAuthenticator((context) => [context.toSignIn]);
       return (
         // Create a container for the footer with centered text
         <View textAlign="center">
@@ -190,10 +192,10 @@ const components = {
  * Props interface for the CustomAuthenticator component
  * @interface CustomAuthenticatorProps
  * @extends {Omit<AuthenticatorProps, 'children'>}
- * @property {(authProps: { signOut?: (() => void) | undefined; user?: any }) => ReactNode} children - Function that renders the authenticated content
+ * @property {(authProps: { signOut?: (() => void) | undefined; user?: AuthUser | undefined }) => ReactNode} children - Function that renders the authenticated content
  */
 interface CustomAuthenticatorProps extends Omit<AuthenticatorProps, 'children'> {
-  children: (authProps: { signOut?: (() => void) | undefined; user?: any }) => ReactNode;
+  children: (authProps: { signOut?: (() => void) | undefined; user?: AuthUser | undefined }) => ReactNode;
 }
 
 /**
