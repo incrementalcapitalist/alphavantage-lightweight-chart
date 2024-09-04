@@ -76,10 +76,8 @@ const App: React.FC = () => {
             {({ signOut, user }) => (
               // Container for authenticated content
               <View className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                {/* Welcome message with user's email */}
-                <Heading level={1} className="text-3xl font-bold text-center text-purple-300 mb-8">
-                  Welcome, {user?.username}!
-                </Heading>
+                {/* Display icon/logo */}
+                <img src="/logo512.png" alt="App Logo" className="h-12 w-12 mr-2" />
                 {/* StockQuote component for displaying stock information */}
                 <StockQuote />
                 {/* Sign out button */}

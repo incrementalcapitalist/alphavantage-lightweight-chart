@@ -327,8 +327,8 @@ const StockQuote: React.FC = () => {
   // Render the component
   return (
     <div className="bg-gray-900 text-purple-300 shadow-lg rounded-lg p-8 font-['PT_Sans_Narrow']">
-      <h2 className="text-3xl font-bold mb-6 text-purple-200 border-b border-purple-700 pb-2">
-        Stock Quote Fetcher
+      <h2 className="text-3xl font-bold mb-6 text-purple-200 border-b border-purple-700 pb-2 text-center">
+        BASIC PRICE ANALYSIS
       </h2>
       <div className="mb-6">
         <input
