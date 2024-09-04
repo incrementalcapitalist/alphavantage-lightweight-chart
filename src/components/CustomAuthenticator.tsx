@@ -1,9 +1,8 @@
 /**
  * @file CustomAuthenticator.tsx
- * @version 1.6.0
- * @description Custom Authenticator component with additional styling and functionality,
- * aligned with the latest Cognito User Pool configuration and Amplify UI React library.
- * This version addresses build errors related to type definitions and useAuthenticator hook.
+ * @version 2.0.0
+ * @description Completely rewritten Custom Authenticator component with additional styling and functionality,
+ * aligned with the latest Amplify UI React library and TypeScript best practices.
  */
 
 // Import necessary components and types from React and Amplify UI
@@ -18,184 +17,160 @@ import {
   useAuthenticator,
   ButtonGroup,
   Button,
-  TextField,
-  PasswordField,
-  PhoneNumberField,
-  CheckboxField,
   AuthenticatorProps,
+  SignInProps,
+  SignUpProps,
 } from '@aws-amplify/ui-react';
-import { AuthUser } from '@aws-amplify/core'; // Import AuthUser type
+import { CognitoUser } from '@aws-amplify/auth';
 
-// Define custom components for the Authenticator
-const components = {
-  // Custom Header component for the Authenticator
-  Header() {
-    // Use the useTheme hook to access theme tokens
-    const { tokens } = useTheme();
-    
-    return (
-      // Create a container for the header with centered text and padding
-      <View textAlign="center" padding={tokens.space.large}>
-        {/* Add your logo here. Replace '/path/to/your/logo.png' with your actual logo path */}
-        <Image
-          alt="App logo"
-          src="/logo192.png"
-          height="50px"
-        />
-        {/* Add a heading for the app name */}
-        <Heading
-          padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
-          level={3}
-        >
-          Alpha Vantage Stock Quotation App
-        </Heading>
-      </View>
-    );
-  },
+// Define the structure for authentication props
+interface AuthProps {
+  signOut?: () => void;
+  user?: CognitoUser;
+}
+
+/**
+ * Custom Header component for the Authenticator
+ * @returns {JSX.Element} The rendered Header component
+ */
+const Header: React.FC = () => {
+  // Use the useTheme hook to access theme tokens
+  const { tokens } = useTheme();
   
-  // Custom Footer component for the Authenticator
-  Footer() {
-    // Use the useTheme hook to access theme tokens
-    const { tokens } = useTheme();
-    return (
-      // Create a container for the footer with centered text and padding
-      <View textAlign="center" padding={tokens.space.large}>
-        {/* Copyright notice */}
-        <Text color={tokens.colors.neutral[80]}>
-          &copy; 2024 Incremental Capital LLC. All rights reserved.
-        </Text>
-      </View>
-    );
-  },
+  return (
+    // Create a container for the header with centered text and padding
+    <View textAlign="center" padding={tokens.space.large}>
+      {/* Add your logo here. Replace '/path/to/your/logo.png' with your actual logo path */}
+      <Image
+        alt="App logo"
+        src="/logo192.png"
+        height="50px"
+      />
+      {/* Add a heading for the app name */}
+      <Heading
+        padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
+        level={3}
+      >
+        Alpha Vantage Stock Quotation App
+      </Heading>
+    </View>
+  );
+};
 
-  // Custom SignIn component
-  SignIn: {
-    // Header for the SignIn form
-    Header() {
-      // Use the useTheme hook to access theme tokens
-      const { tokens } = useTheme();
-      return (
-        // Create a heading for the sign-in form
-        <Heading
-          padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
-          level={3}
-        >
-          Sign in to your account
-        </Heading>
-      );
-    },
-    // Footer for the SignIn form
-    Footer() {
-      // Use the useAuthenticator hook to access authentication functions
-      const { toResetPassword } = useAuthenticator((context) => [context.toResetPassword]);
-      return (
-        // Create a container for the footer with centered text
-        <View textAlign="center">
-          {/* Group the buttons together */}
-          <ButtonGroup>
-            {/* Button to navigate to the reset password page */}
-            <Button
-              fontWeight="normal"
-              // Navigate to reset password page if the function is available
-              onClick={() => {
-                if (toResetPassword) {
-                  toResetPassword();
-                } else {
-                  console.log('Reset password function not available');
-                }
-              }}
-              size="small"
-              variation="link"
-            >
-              Forgot your password?
-            </Button>
-          </ButtonGroup>
-        </View>
-      );
-    },
-  },
+/**
+ * Custom Footer component for the Authenticator
+ * @returns {JSX.Element} The rendered Footer component
+ */
+const Footer: React.FC = () => {
+  // Use the useTheme hook to access theme tokens
+  const { tokens } = useTheme();
+  return (
+    // Create a container for the footer with centered text and padding
+    <View textAlign="center" padding={tokens.space.large}>
+      {/* Copyright notice */}
+      <Text color={tokens.colors.neutral[80]}>
+        &copy; 2024 Incremental Capital LLC. All rights reserved.
+      </Text>
+    </View>
+  );
+};
 
-  // Custom SignUp component
-  SignUp: {
-    // Header for the SignUp form
-    Header() {
-      // Use the useTheme hook to access theme tokens
-      const { tokens } = useTheme();
-      return (
-        // Create a heading for the sign-up form
-        <Heading
-          padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
-          level={3}
-        >
-          Create a new account
-        </Heading>
-      );
-    },
-    // Custom form fields for the SignUp form
-    FormFields() {
-      return (
-        <>
-          {/* Email field (used as username) */}
-          <TextField
-            label="Email"
-            name="email"
-            placeholder="Enter your email"
-            required
-          />
-          {/* Password field */}
-          <PasswordField
-            label="Password"
-            name="password"
-            placeholder="Enter your password"
-            required
-          />
-          {/* Phone number field */}
-          <PhoneNumberField
-            label="Phone Number"
-            name="phone_number"
-            placeholder="Enter your phone number"
-            required
-          />
-          {/* Terms and conditions checkbox */}
-          <CheckboxField
-            label="I agree to the terms and conditions"
-            name="terms"
-            value="yes"
-            required
-          />
-        </>
-      );
-    },
-    // Footer for the SignUp form
-    Footer() {
-      // Use the useAuthenticator hook to access authentication functions
-      const { toSignIn } = useAuthenticator((context) => [context.toSignIn]);
-      return (
-        // Create a container for the footer with centered text
-        <View textAlign="center">
-          {/* Button to navigate back to the sign-in page */}
+/**
+ * Custom SignIn component
+ * @param {SignInProps} props - Props passed to the SignIn component
+ * @returns {JSX.Element} The rendered SignIn component
+ */
+const SignIn: React.FC<SignInProps> = (props) => {
+  // Use the useTheme hook to access theme tokens
+  const { tokens } = useTheme();
+  // Use the useAuthenticator hook to access authentication functions
+  const { toResetPassword } = useAuthenticator();
+
+  return (
+    <View {...props}>
+      {/* Header for the SignIn form */}
+      <Heading
+        padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
+        level={3}
+      >
+        Sign in to your account
+      </Heading>
+      
+      {/* Render the default sign-in fields */}
+      {props.children}
+      
+      {/* Footer for the SignIn form */}
+      <View textAlign="center">
+        <ButtonGroup>
           <Button
             fontWeight="normal"
-            onClick={toSignIn}
+            onClick={() => toResetPassword()}
             size="small"
             variation="link"
           >
-            Already have an account? Sign in
+            Forgot your password?
           </Button>
-        </View>
-      );
-    },
-  },
+        </ButtonGroup>
+      </View>
+    </View>
+  );
+};
+
+/**
+ * Custom SignUp component
+ * @param {SignUpProps} props - Props passed to the SignUp component
+ * @returns {JSX.Element} The rendered SignUp component
+ */
+const SignUp: React.FC<SignUpProps> = (props) => {
+  // Use the useTheme hook to access theme tokens
+  const { tokens } = useTheme();
+  // Use the useAuthenticator hook to access authentication functions
+  const { toSignIn } = useAuthenticator();
+
+  return (
+    <View {...props}>
+      {/* Header for the SignUp form */}
+      <Heading
+        padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
+        level={3}
+      >
+        Create a new account
+      </Heading>
+      
+      {/* Render the default sign-up fields */}
+      {props.children}
+      
+      {/* Footer for the SignUp form */}
+      <View textAlign="center">
+        <Button
+          fontWeight="normal"
+          onClick={() => toSignIn()}
+          size="small"
+          variation="link"
+        >
+          Already have an account? Sign in
+        </Button>
+      </View>
+    </View>
+  );
+};
+
+// Define custom components for the Authenticator
+const components = {
+  Header,
+  Footer,
+  SignIn,
+  SignUp,
 };
 
 /**
  * Props interface for the CustomAuthenticator component
  * @interface CustomAuthenticatorProps
  * @extends {Omit<AuthenticatorProps, 'children'>}
- * @property {(authProps: { signOut?: (() => void) | undefined; user?: AuthUser | undefined }) => ReactNode} children - Function that renders the authenticated content
+ * @property {(authProps: AuthProps) => ReactNode} children - Function that renders the authenticated content
  */
 interface CustomAuthenticatorProps extends Omit<AuthenticatorProps, 'children'> {
-  children: (authProps: { signOut?: (() => void) | undefined; user?: AuthUser | undefined }) => ReactNode;
+  children: (authProps: AuthProps) => ReactNode;
 }
 
 /**
