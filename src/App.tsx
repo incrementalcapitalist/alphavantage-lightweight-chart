@@ -13,7 +13,6 @@ import StockQuote from "./components/StockQuote";
 // Configure Amplify
 Amplify.configure({
   Auth: {
-    region: 'us-east-1', // replace with your region if different
     userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
     userPoolWebClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
   }
