@@ -1,7 +1,7 @@
 /**
  * @file App.tsx
- * @version 1.5.1
- * @description Main application component with custom Amplify UI theme and type fixes
+ * @version 1.5.2
+ * @description Main application component with updated theme usage
  */
 
 import React from "react";

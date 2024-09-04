@@ -1,12 +1,12 @@
 /**
  * @file AmplifyTheme.ts
- * @version 1.1.0
- * @description Custom theme for Amplify UI components with type fixes
+ * @version 1.2.0
+ * @description Custom theme for Amplify UI components with stricter type compliance
  */
 
-import { Theme, createTheme } from '@aws-amplify/ui-react';
+import { createTheme, ThemeProvider, Theme } from '@aws-amplify/ui-react';
 
-const theme: Theme = createTheme({
+const theme = createTheme({
   name: 'dark-purple-theme',
   tokens: {
     colors: {
@@ -42,8 +42,9 @@ const theme: Theme = createTheme({
         borderColor: { value: '{colors.background.secondary}' },
       },
       authenticator: {
-        // Remove the backgroundColor property as it's not recognized
-        // backgroundColor: { value: '{colors.background.primary}' },
+        router: {
+          borderColor: { value: '{colors.background.secondary}' },
+        },
       },
     },
   },
