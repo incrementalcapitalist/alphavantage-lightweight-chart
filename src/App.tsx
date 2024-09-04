@@ -35,7 +35,7 @@ const App: React.FC = () => {
       {/* Use our CustomAuthenticator instead of the default Authenticator */}
       <CustomAuthenticator> {/* Wrap the entire app an with Authenticator component for user authentication */}
         {({ signOut, user }) => (
-          {/* This content will only be shown when the user is authenticated */}
+          // This content will only be shown when the user is authenticated 
           <div className="min-h-screen bg-gray-900 py-6 flex flex-col justify-center sm:py-12">
             <div className="px-4 sm:px-6 lg:px-8">
               <div className="max-w-md mx-auto">
