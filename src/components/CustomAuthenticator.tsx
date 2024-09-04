@@ -1,11 +1,11 @@
 /**
  * @file CustomAuthenticator.tsx
- * @version 1.0.0
+ * @version 1.1.0
  * @description Custom Authenticator component with additional styling and functionality
  */
 
 // Import necessary components and hooks from Amplify UI React
-import React from 'react';
+import React, { ReactNode } from 'react';
 import {
   Authenticator,
   View,
@@ -13,7 +13,7 @@ import {
   Text,
   Heading,
   useTheme,
-  useAuthenticator
+  AuthenticatorProps
 } from '@aws-amplify/ui-react';
 
 // Define the custom components for the Authenticator
