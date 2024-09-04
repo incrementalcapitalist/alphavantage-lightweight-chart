@@ -1,6 +1,6 @@
 /**
  * @file StockQuote.tsx
- * @version 1.2.0
+ * @version 1.3.0
  * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart
  */
 
@@ -277,14 +277,14 @@ const StockQuote: React.FC = () => {
             textColor: '#C4B5FD', // Light purple text
           },
           grid: {
-            vertLines: { color: '#1F2937' }, // Darker grid lines
-            horzLines: { color: '#1F2937' },
-          },
-          timeScale: {
-            borderColor: '#374151', // Dark border
+            vertLines: { visible: false }, // Hide vertical grid lines
+            horzLines: { visible: false }, // Hide horizontal grid lines
           },
           rightPriceScale: {
-            borderColor: '#374151',
+            visible: false, // Hide the right price scale
+          },
+          timeScale: {
+            visible: false, // Hide the time scale
           },
         });
       }

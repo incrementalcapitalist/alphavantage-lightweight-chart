@@ -1,7 +1,7 @@
 /**
  * @file App.tsx
- * @version 3.1.0
- * @description Main application component using default Amplify Authenticator with custom theme
+ * @version 3.4.0
+ * @description Main application component with enhanced UI and custom Amplify Authenticator
  */
 
 // Import necessary dependencies
@@ -10,7 +10,7 @@ import { Authenticator, ThemeProvider, View, Heading, Button, useTheme } from '@
 import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 import StockQuote from "./components/StockQuote";
-import theme from './AmplifyTheme'; // Import the custom theme
+import theme from './AmplifyTheme';
 
 // Amplify configuration
 Amplify.configure({
@@ -47,14 +47,30 @@ const App: React.FC = () => {
                   <Heading
                     padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
                     level={3}
+                    color={tokens.colors.font.primary}
                   >
                     AlphaVantage Lightweight Charts
                   </Heading>
                 );
               },
+              Footer() {
+                const { tokens } = useTheme();
+                return (
+                  <View textAlign="center" padding={tokens.space.large}>
+                    <Button
+                      fontWeight="normal"
+                      onClick={() => {}}
+                      size="small"
+                      variation="link"
+                      color={tokens.colors.font.secondary}
+                    >
+                      &copy; 2024 Incremental Capital LLC
+                    </Button>
+                  </View>
+                );
+              },
             }}
           >
-            {/* Render authenticated content */}
             {({ signOut, user }) => (
               // Container for authenticated content
               <View className="bg-gray-800 p-6 rounded-lg shadow-lg">
@@ -67,7 +83,7 @@ const App: React.FC = () => {
                 {/* Sign out button */}
                 <Button
                   onClick={signOut}
-                  className="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
+                  className="mt-8 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
                 >
                   Sign Out
                 </Button>
