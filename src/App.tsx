@@ -1,12 +1,12 @@
 /**
  * @file App.tsx
- * @version 1.7.0
+ * @version 1.8.0
  * @description Main application component with CustomAuthenticator integration
  */
 
 // Import necessary dependencies
 import React from "react";
-import { ThemeProvider, UseAuthenticator } from '@aws-amplify/ui-react'; // Updated import
+import { ThemeProvider } from '@aws-amplify/ui-react'; // Remove UseAuthenticator import
 import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 import StockQuote from "./components/StockQuote";
@@ -35,10 +35,7 @@ const App: React.FC = () => {
       {/* Use our CustomAuthenticator instead of the default Authenticator */}
       <CustomAuthenticator>
         {/* The function passed to CustomAuthenticator receives authentication props */}
-        {(authProps: UseAuthenticator) => {
-          // Destructure signOut and user from authProps
-          const { signOut, user } = authProps;
-          
+        {({ signOut, user }) => { // Remove type annotation here
           // This content will only be shown when the user is authenticated 
           return (
             <div className="min-h-screen bg-gray-900 py-6 flex flex-col justify-center sm:py-12">
