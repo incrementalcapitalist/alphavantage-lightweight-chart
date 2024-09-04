@@ -1,11 +1,11 @@
 /**
  * @file CustomAuthenticator.tsx
- * @version 3.0.0
- * @description Simplified Custom Authenticator component compatible with the latest Amplify UI React library.
+ * @version 3.1.0
+ * @description Final revision of Custom Authenticator component to resolve typing issues
  */
 
 // Import necessary components and types from React and Amplify UI
-import React, { ReactNode } from 'react';
+import React, { ReactElement } from 'react';
 import {
   Authenticator,
   ThemeProvider,
@@ -14,6 +14,7 @@ import {
   useTheme,
   Heading,
   useAuthenticator,
+  AuthenticatorProps,
 } from '@aws-amplify/ui-react';
 
 // Define the structure for authentication props
@@ -61,7 +62,7 @@ const components = {
  * Props interface for the CustomAuthenticator component
  */
 interface CustomAuthenticatorProps {
-  children: (authProps: AuthProps) => ReactNode;
+  children: (authProps: AuthProps) => ReactElement;
 }
 
 /**
@@ -73,7 +74,7 @@ const CustomAuthenticator: React.FC<CustomAuthenticatorProps> = ({ children }) =
   return (
     <ThemeProvider>
       <Authenticator components={components}>
-        {(authProps) => {
+        {(authProps: AuthenticatorProps) => {
           const auth = useAuthenticator();
           return children({
             signOut: auth.signOut,

@@ -1,7 +1,7 @@
 /**
  * @file App.tsx
- * @version 3.0.0
- * @description Main application component with simplified CustomAuthenticator integration
+ * @version 3.1.0
+ * @description Main application component with final CustomAuthenticator integration
  */
 
 // Import necessary dependencies
