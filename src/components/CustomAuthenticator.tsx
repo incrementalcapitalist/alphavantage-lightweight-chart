@@ -1,11 +1,11 @@
 /**
  * @file CustomAuthenticator.tsx
- * @version 1.0.0
- * @description Custom Authenticator component with additional styling and functionality
+ * @version 1.1.0
+ * @description Custom Authenticator component with additional styling and functionality, fixed for TypeScript
  */
 
 // Import necessary components and hooks from Amplify UI React
-import React from 'react';
+import React, { ReactNode } from 'react';
 import {
   Authenticator,
   View,
@@ -13,7 +13,8 @@ import {
   Text,
   Heading,
   useTheme,
-  useAuthenticator
+  useAuthenticator,
+  AuthenticatorProps
 } from '@aws-amplify/ui-react';
 
 // Define the custom components for the Authenticator
@@ -58,13 +59,20 @@ const components = {
   },
 };
 
+// Define the props interface for the CustomAuthenticator component
+interface CustomAuthenticatorProps {
+  children: ReactNode | ((props: AuthenticatorProps) => ReactNode);
+}
+
 // Define the CustomAuthenticator component
-const CustomAuthenticator: React.FC = ({ children }) => {
+const CustomAuthenticator: React.FC<CustomAuthenticatorProps> = ({ children }) => {
   return (
     // Use the Amplify Authenticator component with our custom components
     <Authenticator components={components}>
-      {/* Render the children (the main app content) when authenticated */}
-      {children}
+      {(authProps) => {
+        // If children is a function, call it with auth props, otherwise render it directly
+        return typeof children === 'function' ? children(authProps) : children;
+      }}
     </Authenticator>
   );
 };
