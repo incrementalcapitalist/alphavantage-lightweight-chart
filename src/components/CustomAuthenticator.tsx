@@ -1,6 +1,6 @@
 /**
  * @file CustomAuthenticator.tsx
- * @version 1.4.0
+ * @version 1.5.0
  * @description Custom Authenticator component with additional styling and functionality,
  * aligned with the latest Cognito User Pool configuration and Amplify UI React library.
  */
@@ -21,7 +21,7 @@ import {
   PasswordField,
   PhoneNumberField,
   CheckboxField,
-  UseAuthenticator, // Updated from UseAuthenticatorOutput
+  AuthenticatorProps,
 } from '@aws-amplify/ui-react';
 
 // Define custom components for the Authenticator
@@ -94,8 +94,14 @@ const components = {
             {/* Button to navigate to the reset password page */}
             <Button
               fontWeight="normal"
-              // Check if toResetPassword is available before using it
-              onClick={toResetPassword ? toResetPassword : () => console.log('Reset password not available')}
+              // Navigate to reset password page if the function is available
+              onClick={() => {
+                if (typeof toResetPassword === 'function') {
+                  toResetPassword();
+                } else {
+                  console.log('Reset password function not available');
+                }
+              }}
               size="small"
               variation="link"
             >
@@ -183,10 +189,11 @@ const components = {
 /**
  * Props interface for the CustomAuthenticator component
  * @interface CustomAuthenticatorProps
- * @property {(authProps: UseAuthenticator) => ReactNode} children - Function that renders the authenticated content
+ * @extends {Omit<AuthenticatorProps, 'children'>}
+ * @property {(authProps: { signOut?: (() => void) | undefined; user?: any }) => ReactNode} children - Function that renders the authenticated content
  */
-interface CustomAuthenticatorProps {
-  children: (authProps: UseAuthenticator) => ReactNode;
+interface CustomAuthenticatorProps extends Omit<AuthenticatorProps, 'children'> {
+  children: (authProps: { signOut?: (() => void) | undefined; user?: any }) => ReactNode;
 }
 
 /**
@@ -194,12 +201,12 @@ interface CustomAuthenticatorProps {
  * @param {CustomAuthenticatorProps} props - The component props
  * @returns {JSX.Element} The rendered CustomAuthenticator component
  */
-const CustomAuthenticator: React.FC<CustomAuthenticatorProps> = ({ children }) => {
+const CustomAuthenticator: React.FC<CustomAuthenticatorProps> = ({ children, ...props }) => {
   return (
     // Use the Amplify Authenticator component with our custom components
-    <Authenticator components={components}>
+    <Authenticator {...props} components={components}>
       {/* Render the children (the main app content) when authenticated */}
-      {children}
+      {(authProps) => children(authProps)}
     </Authenticator>
   );
 };
