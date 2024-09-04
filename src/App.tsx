@@ -1,15 +1,16 @@
 /**
  * @file App.tsx
- * @version 1.5.2
- * @description Main application component with updated theme usage
+ * @version 1.6.0
+ * @description Main application component with updated CustomAuthenticator usage
  */
 
 // Import necessary dependencies
 import React from "react";
-import { Authenticator, ThemeProvider } from '@aws-amplify/ui-react';
+import { ThemeProvider } from '@aws-amplify/ui-react';
 import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 import StockQuote from "./components/StockQuote";
+import CustomAuthenticator from "./components/CustomAuthenticator";
 import theme from './AmplifyTheme';
 
 // Amplify configuration
@@ -30,7 +31,7 @@ Amplify.configure({
 const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}> {/* Wrap the entire Authenticator component for the app with its theme */}
-      <Authenticator> 
+      <CustomAuthenticator>
         {/* Wrap the entire app an with Authenticator component for user authentication */}
         {({ signOut, user }) => (
           <div className="min-h-screen bg-gray-900 py-6 flex flex-col justify-center sm:py-12">
@@ -52,7 +53,7 @@ const App: React.FC = () => {
             </div>
           </div>
         )}
-      </Authenticator>
+      </CustomAuthenticator>
     </ThemeProvider>
   );
 };
