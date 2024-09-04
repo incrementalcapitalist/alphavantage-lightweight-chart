@@ -1,18 +1,15 @@
 /**
  * @file App.tsx
- * @version 2.1.0
- * @description Main application component with CustomAuthenticator integration,
- * updated to align with the latest Amplify UI React library and TypeScript best practices.
+ * @version 3.0.0
+ * @description Main application component with simplified CustomAuthenticator integration
  */
 
 // Import necessary dependencies
 import React from "react";
-import { ThemeProvider } from '@aws-amplify/ui-react';
 import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 import StockQuote from "./components/StockQuote";
 import CustomAuthenticator from "./components/CustomAuthenticator";
-import theme from './AmplifyTheme';
 
 // Configure Amplify with environment variables
 Amplify.configure({
@@ -62,14 +59,9 @@ const AuthenticatedContent: React.FC<{ signOut?: () => void; user?: any }> = ({ 
  */
 const App: React.FC = () => {
   return (
-    // Wrap the entire app with ThemeProvider to apply our custom theme
-    <ThemeProvider theme={theme}>
-      {/* Use our CustomAuthenticator instead of the default Authenticator */}
-      <CustomAuthenticator>
-        {/* The function passed to CustomAuthenticator receives authentication props */}
-        {(authProps) => <AuthenticatedContent {...authProps} />}
-      </CustomAuthenticator>
-    </ThemeProvider>
+    <CustomAuthenticator>
+      {(authProps) => <AuthenticatedContent {...authProps} />}
+    </CustomAuthenticator>
   );
 };
 
