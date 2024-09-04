@@ -1,71 +1,17 @@
 /**
  * @file CustomAuthenticator.tsx
- * @version 1.1.0
- * @description Custom Authenticator component with additional styling and functionality
+ * @version 2.0.0
+ * @description Simplified Custom Authenticator component for manually created Cognito user pool
  */
 
-// Import necessary components and hooks from Amplify UI React
-import React from 'react';
-import {
-  Authenticator,
-  View,
-  Image,
-  Text,
-  Heading,
-  useTheme,
-  useAuthenticator,
-  AuthenticatorProps
-} from '@aws-amplify/ui-react';
-
-/**
- * Custom components for the Authenticator
- */
-const components = {
-  // Custom Header component for the Authenticator
-  Header() {
-    // Use the useTheme hook to access the current theme tokens
-    const { tokens } = useTheme();
-    
-    return (
-      // Create a container for the header with centered text and padding
-      <View textAlign="center" padding={tokens.space.large}>
-        <Image
-          alt="App logo"
-          src="/logo192.png"
-          height="50px"
-        />
-        {/* Add a heading for the app name */}
-        <Heading
-          padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
-          level={3}
-        >
-          Alpha Vantage Stock Quotation App
-        </Heading>
-      </View>
-    );
-  },
-  
-  // Custom Footer component for the Authenticator
-  Footer() {
-    // Use the useTheme hook to access the current theme tokens
-    const { tokens } = useTheme();
-    return (
-      // Create a container for the footer with centered text and padding
-      <View textAlign="center" padding={tokens.space.large}>
-        {/* Copyright notice */}
-        <Text color={tokens.colors.neutral[80]}>
-          &copy; 2024 Incremental Capital LLC. All rights reserved.
-        </Text>
-      </View>
-    );
-  },
-};
+import React, { useState, useEffect } from 'react';
+import { Auth } from 'aws-amplify';
 
 /**
  * Props interface for the CustomAuthenticator component
  */
 interface CustomAuthenticatorProps {
-  children: (props: AuthenticatorProps) => React.ReactNode;
+  children: React.ReactNode;
 }
 
 /**
@@ -74,13 +20,77 @@ interface CustomAuthenticatorProps {
  * @returns {JSX.Element} The rendered CustomAuthenticator component
  */
 const CustomAuthenticator: React.FC<CustomAuthenticatorProps> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    checkAuthState();
+  }, []);
+
+  // Function to check the current authentication state
+  const checkAuthState = async () => {
+    try {
+      const user = await Auth.currentAuthenticatedUser();
+      setIsAuthenticated(true);
+      setUser(user);
+    } catch (error) {
+      setIsAuthenticated(false);
+      setUser(null);
+    }
+  };
+
+  // Function to handle sign in
+  const signIn = async (username: string, password: string) => {
+    try {
+      const user = await Auth.signIn(username, password);
+      setIsAuthenticated(true);
+      setUser(user);
+    } catch (error) {
+      console.error('Error signing in:', error);
+    }
+  };
+
+  // Function to handle sign out
+  const signOut = async () => {
+    try {
+      await Auth.signOut();
+      setIsAuthenticated(false);
+      setUser(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // If the user is authenticated, render the children
+  if (isAuthenticated) {
+    return (
+      <div>
+        {React.Children.map(children, child => {
+          if (React.isValidElement(child)) {
+            return React.cloneElement(child, { user, signOut });
+          }
+          return child;
+        })}
+      </div>
+    );
+  }
+
+  // If not authenticated, render a simple sign-in form
   return (
-    // Use the Amplify Authenticator component with our custom components
-    <Authenticator components={components}>
-      {(authProps) => children(authProps)}
-    </Authenticator>
+    <div>
+      <h2>Sign In</h2>
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        const username = (e.target as any).username.value;
+        const password = (e.target as any).password.value;
+        signIn(username, password);
+      }}>
+        <input name="username" type="text" placeholder="Username" required />
+        <input name="password" type="password" placeholder="Password" required />
+        <button type="submit">Sign In</button>
+      </form>
+    </div>
   );
 };
 
-// Export the CustomAuthenticator component as the default export
 export default CustomAuthenticator;
