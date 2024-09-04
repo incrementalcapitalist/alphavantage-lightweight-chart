@@ -1,8 +1,7 @@
 /**
  * @file CustomAuthenticator.tsx
- * @version 2.0.0
- * @description Completely rewritten Custom Authenticator component with additional styling and functionality,
- * aligned with the latest Amplify UI React library and TypeScript best practices.
+ * @version 2.1.0
+ * @description Revised Custom Authenticator component compatible with the latest Amplify UI React library.
  */
 
 // Import necessary components and types from React and Amplify UI
@@ -18,15 +17,12 @@ import {
   ButtonGroup,
   Button,
   AuthenticatorProps,
-  SignInProps,
-  SignUpProps,
 } from '@aws-amplify/ui-react';
-import { CognitoUser } from '@aws-amplify/auth';
 
 // Define the structure for authentication props
 interface AuthProps {
   signOut?: () => void;
-  user?: CognitoUser;
+  user?: any; // We'll use 'any' for now as the exact type is unclear
 }
 
 /**
@@ -40,7 +36,7 @@ const Header: React.FC = () => {
   return (
     // Create a container for the header with centered text and padding
     <View textAlign="center" padding={tokens.space.large}>
-      {/* Add your logo here. Replace '/path/to/your/logo.png' with your actual logo path */}
+      {/* Logo */}
       <Image
         alt="App logo"
         src="/logo192.png"
@@ -77,17 +73,17 @@ const Footer: React.FC = () => {
 
 /**
  * Custom SignIn component
- * @param {SignInProps} props - Props passed to the SignIn component
+ * @param {React.PropsWithChildren} props - Props passed to the SignIn component
  * @returns {JSX.Element} The rendered SignIn component
  */
-const SignIn: React.FC<SignInProps> = (props) => {
+const SignIn: React.FC<React.PropsWithChildren> = ({ children }) => {
   // Use the useTheme hook to access theme tokens
   const { tokens } = useTheme();
   // Use the useAuthenticator hook to access authentication functions
   const { toResetPassword } = useAuthenticator();
 
   return (
-    <View {...props}>
+    <View>
       {/* Header for the SignIn form */}
       <Heading
         padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
@@ -95,16 +91,14 @@ const SignIn: React.FC<SignInProps> = (props) => {
       >
         Sign in to your account
       </Heading>
-      
       {/* Render the default sign-in fields */}
-      {props.children}
-      
+      {children}
       {/* Footer for the SignIn form */}
       <View textAlign="center">
         <ButtonGroup>
           <Button
             fontWeight="normal"
-            onClick={() => toResetPassword()}
+            onClick={toResetPassword}
             size="small"
             variation="link"
           >
@@ -118,17 +112,17 @@ const SignIn: React.FC<SignInProps> = (props) => {
 
 /**
  * Custom SignUp component
- * @param {SignUpProps} props - Props passed to the SignUp component
+ * @param {React.PropsWithChildren} props - Props passed to the SignUp component
  * @returns {JSX.Element} The rendered SignUp component
  */
-const SignUp: React.FC<SignUpProps> = (props) => {
+const SignUp: React.FC<React.PropsWithChildren> = ({ children }) => {
   // Use the useTheme hook to access theme tokens
   const { tokens } = useTheme();
   // Use the useAuthenticator hook to access authentication functions
   const { toSignIn } = useAuthenticator();
 
   return (
-    <View {...props}>
+    <View>
       {/* Header for the SignUp form */}
       <Heading
         padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
@@ -136,15 +130,15 @@ const SignUp: React.FC<SignUpProps> = (props) => {
       >
         Create a new account
       </Heading>
-      
+
       {/* Render the default sign-up fields */}
-      {props.children}
+      {children}
       
       {/* Footer for the SignUp form */}
       <View textAlign="center">
         <Button
           fontWeight="normal"
-          onClick={() => toSignIn()}
+          onClick={toSignIn}
           size="small"
           variation="link"
         >
@@ -183,7 +177,7 @@ const CustomAuthenticator: React.FC<CustomAuthenticatorProps> = ({ children, ...
     // Use the Amplify Authenticator component with our custom components
     <Authenticator {...props} components={components}>
       {/* Render the children (the main app content) when authenticated */}
-      {(authProps) => children(authProps)}
+      {(authProps) => children(authProps as AuthProps)}
     </Authenticator>
   );
 };
