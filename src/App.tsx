@@ -1,7 +1,7 @@
 /**
  * @file App.tsx
- * @version 3.4.0
- * @description Main application component with enhanced UI and custom Amplify Authenticator
+ * @version 3.5.0
+ * @description Main application component with enhanced UI, custom Amplify Authenticator, and updated styling
  */
 
 // Import necessary dependencies
@@ -11,6 +11,9 @@ import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 import StockQuote from "./components/StockQuote";
 import theme from './AmplifyTheme';
+
+// Import Google Font
+import '@fontsource/pt-sans-narrow';
 
 // Amplify configuration
 Amplify.configure({
@@ -31,8 +34,8 @@ const App: React.FC = () => {
   return (
     // Wrap the entire application with ThemeProvider to apply our custom theme
     <ThemeProvider theme={theme}>
-      {/* Create a full-height container with centered content */}
-      <View className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      {/* Create a full-height container with white background and centered content */}
+      <View className="min-h-screen bg-white flex items-center justify-center p-4">
         {/* Limit the width of the content for better readability on larger screens */}
         <View className="w-full max-w-md">
           {/* Amplify Authenticator component with custom header */}
@@ -41,28 +44,25 @@ const App: React.FC = () => {
             components={{
               // Custom header component for the Authenticator
               Header() {
-                const { tokens } = useTheme(); // Access theme tokens
-
                 return (
-                  <Heading
-                    padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
-                    level={3}
-                    color={tokens.colors.font.primary}
-                  >
-                    AlphaVantage Lightweight Charts
-                  </Heading>
+                  <View className="bg-white w-full py-4">
+                    <Heading
+                      level={3}
+                      className="text-center font-pt-sans-narrow text-2xl text-emerald-600"
+                    >
+                      AlphaVantage Lightweight Charts
+                    </Heading>
+                  </View>
                 );
               },
               Footer() {
-                const { tokens } = useTheme();
                 return (
-                  <View textAlign="center" padding={tokens.space.large}>
+                  <View textAlign="center" padding="1rem">
                     <Button
                       fontWeight="normal"
                       onClick={() => {}}
                       size="small"
                       variation="link"
-                      color={tokens.colors.font.secondary}
                     >
                       &copy; 2024 Incremental Capital LLC
                     </Button>
@@ -74,7 +74,7 @@ const App: React.FC = () => {
             {({ signOut, user }) => (
               // Container for authenticated content
               <View className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                {/* Welcome message with user's username */}
+                {/* Welcome message with user's email */}
                 <Heading level={1} className="text-3xl font-bold text-center text-purple-300 mb-8">
                   Welcome, {user?.username}!
                 </Heading>
