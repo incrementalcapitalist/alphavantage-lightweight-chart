@@ -1,23 +1,21 @@
 /**
  * @file App.tsx
- * @version 1.6.0
- * @description Main application component with updated CustomAuthenticator usage
+ * @version 1.5.2
+ * @description Main application component with updated theme usage
  */
 
 // Import necessary dependencies
 import React from "react";
-import { ThemeProvider } from '@aws-amplify/ui-react';
+import { Authenticator, ThemeProvider } from '@aws-amplify/ui-react';
 import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 import StockQuote from "./components/StockQuote";
-import CustomAuthenticator from "./components/CustomAuthenticator";
 import theme from './AmplifyTheme';
 
 // Amplify configuration
 Amplify.configure({
   Auth: {
     Cognito: {
-      // Use environment variables for Cognito configuration
       userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
       userPoolClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
     }
@@ -31,7 +29,7 @@ Amplify.configure({
 const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}> {/* Wrap the entire Authenticator component for the app with its theme */}
-      <CustomAuthenticator>
+      <Authenticator> 
         {/* Wrap the entire app an with Authenticator component for user authentication */}
         {({ signOut, user }) => (
           <div className="min-h-screen bg-gray-900 py-6 flex flex-col justify-center sm:py-12">
@@ -53,7 +51,7 @@ const App: React.FC = () => {
             </div>
           </div>
         )}
-      </CustomAuthenticator>
+      </Authenticator>
     </ThemeProvider>
   );
 };
