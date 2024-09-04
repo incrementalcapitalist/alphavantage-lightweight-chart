@@ -1,42 +1,40 @@
 /**
  * @file CustomAuthenticator.tsx
- * @version 3.1.0
- * @description Final revision of Custom Authenticator component to resolve typing issues
+ * @version 1.1.0
+ * @description Custom Authenticator component with additional styling and functionality
  */
 
-// Import necessary components and types from React and Amplify UI
-import React, { ReactElement } from 'react';
+// Import necessary components and hooks from Amplify UI React
+import React from 'react';
 import {
   Authenticator,
-  ThemeProvider,
   View,
   Image,
-  useTheme,
+  Text,
   Heading,
+  useTheme,
   useAuthenticator,
-  AuthenticatorProps,
+  AuthenticatorProps
 } from '@aws-amplify/ui-react';
-
-// Define the structure for authentication props
-interface AuthProps {
-  signOut?: () => void;
-  user?: any; // We'll use 'any' for now as the exact type is unclear
-}
 
 /**
  * Custom components for the Authenticator
  */
 const components = {
+  // Custom Header component for the Authenticator
   Header() {
+    // Use the useTheme hook to access the current theme tokens
     const { tokens } = useTheme();
-
+    
     return (
+      // Create a container for the header with centered text and padding
       <View textAlign="center" padding={tokens.space.large}>
         <Image
           alt="App logo"
           src="/logo192.png"
           height="50px"
         />
+        {/* Add a heading for the app name */}
         <Heading
           padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
           level={3}
@@ -46,13 +44,18 @@ const components = {
       </View>
     );
   },
-
+  
+  // Custom Footer component for the Authenticator
   Footer() {
+    // Use the useTheme hook to access the current theme tokens
     const { tokens } = useTheme();
-
     return (
+      // Create a container for the footer with centered text and padding
       <View textAlign="center" padding={tokens.space.large}>
-        <p>&copy; 2024 Incremental Capital LLC. All rights reserved.</p>
+        {/* Copyright notice */}
+        <Text color={tokens.colors.neutral[80]}>
+          &copy; 2024 Incremental Capital LLC. All rights reserved.
+        </Text>
       </View>
     );
   },
@@ -62,7 +65,7 @@ const components = {
  * Props interface for the CustomAuthenticator component
  */
 interface CustomAuthenticatorProps {
-  children: (authProps: AuthProps) => ReactElement;
+  children: (props: AuthenticatorProps) => React.ReactNode;
 }
 
 /**
@@ -72,17 +75,10 @@ interface CustomAuthenticatorProps {
  */
 const CustomAuthenticator: React.FC<CustomAuthenticatorProps> = ({ children }) => {
   return (
-    <ThemeProvider>
-      <Authenticator components={components}>
-        {(authProps: AuthenticatorProps) => {
-          const auth = useAuthenticator();
-          return children({
-            signOut: auth.signOut,
-            user: auth.user,
-          });
-        }}
-      </Authenticator>
-    </ThemeProvider>
+    // Use the Amplify Authenticator component with our custom components
+    <Authenticator components={components}>
+      {(authProps) => children(authProps)}
+    </Authenticator>
   );
 };
 

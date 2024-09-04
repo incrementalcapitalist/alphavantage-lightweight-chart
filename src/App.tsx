@@ -1,14 +1,14 @@
 /**
  * @file App.tsx
  * @version 3.2.0
- * @description Main application component with final CustomAuthenticator integration
+ * @description Main application component with CustomAuthenticator integration
  */
 
 // Import necessary dependencies
 import React from "react";
 import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
-import { useAuthenticator } from '@aws-amplify/ui-react';
+import { AuthenticatorProps } from '@aws-amplify/ui-react';
 import StockQuote from "./components/StockQuote";
 import CustomAuthenticator from "./components/CustomAuthenticator";
 
@@ -25,11 +25,10 @@ Amplify.configure({
 
 /**
  * AuthenticatedContent component to render the main application content when authenticated
+ * @param {AuthenticatorProps} props - Authentication props
  * @returns {JSX.Element} The rendered authenticated content
  */
-const AuthenticatedContent: React.FC = () => {
-  const { user, signOut } = useAuthenticator((context) => [context.user, context.signOut]);
-
+const AuthenticatedContent: React.FC<AuthenticatorProps> = ({ signOut, user }) => {
   return (
     <div className="min-h-screen bg-gray-900 py-6 flex flex-col justify-center sm:py-12">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -40,13 +39,15 @@ const AuthenticatedContent: React.FC = () => {
           </h1>
           {/* Render the StockQuote component */}
           <StockQuote />
-          {/* Render a sign-out button */}
-          <button
-            onClick={signOut}
-            className="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
-          >
-            Sign Out
-          </button>
+          {/* Render a sign-out button if signOut function is available */}
+          {signOut && (
+            <button
+              onClick={() => signOut()}
+              className="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
+            >
+              Sign Out
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -60,7 +61,7 @@ const AuthenticatedContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <CustomAuthenticator>
-      <AuthenticatedContent />
+      {(authProps) => <AuthenticatedContent {...authProps} />}
     </CustomAuthenticator>
   );
 };
