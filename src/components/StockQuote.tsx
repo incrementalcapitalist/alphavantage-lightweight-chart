@@ -326,53 +326,53 @@ const StockQuote: React.FC = () => {
 
   // Render the component
   return (
-    <div className="bg-gray-900 text-purple-300 shadow-md rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-4 text-purple-200">
+    <div className="bg-gray-900 text-purple-300 shadow-lg rounded-lg p-8 font-['PT_Sans_Narrow']">
+      <h2 className="text-3xl font-bold mb-6 text-purple-200 border-b border-purple-700 pb-2">
         Stock Quote Fetcher
       </h2>
-      <div className="mb-4">
+      <div className="mb-6">
         <input
           type="text"
           value={symbol}
           onChange={(e) => setSymbol(e.target.value.toUpperCase())}
           onKeyPress={handleKeyPress}
           placeholder="Enter stock symbol (e.g., AAPL)"
-          className="w-full p-2 bg-gray-800 border border-gray-700 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-400"
+          className="w-full p-3 bg-gray-800 border border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-400 text-lg"
           aria-label="Stock Symbol"
         />
       </div>
       <button
         onClick={fetchStockData}
         disabled={loading}
-        className="w-full bg-purple-600 text-white p-2 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50"
+        className="w-full bg-purple-600 text-white p-3 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50 text-lg font-semibold"
         aria-busy={loading}
       >
-        {loading ? "Loading..." : "Fetch Quote"}
+        {loading ? "Fetching Data..." : "Fetch Quote"}
       </button>
       {error && (
-        <p className="mt-4 text-red-400" role="alert">
+        <p className="mt-4 text-red-400 bg-red-900 p-3 rounded-md" role="alert">
           Error: {error.message}
         </p>
       )}
-      <div className="mt-6 p-4 bg-gray-800 rounded-lg shadow-inner">
+      <div className="mt-8 p-4 bg-gray-800 rounded-lg shadow-inner">
         <div ref={chartContainerRef} className="w-full h-[400px]"></div>
       </div>
       {stockData && (
-        <div className="mt-6 overflow-x-auto">
+        <div className="mt-8 overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-800">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-purple-300 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-purple-300 uppercase tracking-wider">
                   Field
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-purple-300 uppercase tracking-wider">
+                <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-purple-300 uppercase tracking-wider">
                   Value
                 </th>
               </tr>
             </thead>
             <tbody className="bg-gray-900 divide-y divide-gray-800">
               {Object.entries(stockData).map(([key, value]) => (
-                <tr key={key}>
+                <tr key={key} className="hover:bg-gray-800 transition-colors duration-150">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-200">
                     {formatKey(key)}
                   </td>

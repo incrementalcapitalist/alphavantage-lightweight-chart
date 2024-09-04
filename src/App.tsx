@@ -4,6 +4,9 @@
  * @description Main application component with enhanced UI, custom Amplify Authenticator, and updated styling
  */
 
+// Import Google Font
+import '@fontsource/pt-sans-narrow';
+
 // Import necessary dependencies
 import React from "react";
 import { Authenticator, ThemeProvider, View, Heading, Button, useTheme } from '@aws-amplify/ui-react';
@@ -11,9 +14,6 @@ import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 import StockQuote from "./components/StockQuote";
 import theme from './AmplifyTheme';
-
-// Import Google Font
-import '@fontsource/pt-sans-narrow';
 
 // Amplify configuration
 Amplify.configure({
@@ -45,7 +45,8 @@ const App: React.FC = () => {
               // Custom header component for the Authenticator
               Header() {
                 return (
-                  <View className="bg-white w-full py-4">
+                  <View className="bg-white w-full py-4 flex items-center justify-center">
+                    <img src="/logo512.png" alt="App Logo" className="h-12 w-12 mr-2" />
                     <Heading
                       level={3}
                       className="text-center text-2xl text-emerald-600"
@@ -55,7 +56,7 @@ const App: React.FC = () => {
                     </Heading>
                   </View>
                 );
-              },
+              },              
               Footer() {
                 return (
                   <View textAlign="center" padding="1rem">

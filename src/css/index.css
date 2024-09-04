@@ -2,16 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* You can add any custom styles below this line */
-body {
-  @apply bg-gray-100 text-gray-900;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Custom styles */
+@layer base {
+  body {
+    @apply bg-gray-100 text-gray-900 font-['PT_Sans_Narrow'];
+  }
 }
 
-.container {
-  @apply max-w-4xl mx-auto p-4;
+@layer components {
+  .container {
+    @apply max-w-4xl mx-auto p-4;
+  }
 }
