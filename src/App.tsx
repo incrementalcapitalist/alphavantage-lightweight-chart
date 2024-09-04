@@ -1,16 +1,16 @@
 /**
  * @file App.tsx
- * @version 1.6.0
+ * @version 1.6.1
  * @description Main application component with CustomAuthenticator integration
  */
 
 // Import necessary dependencies
 import React from "react";
-import { ThemeProvider } from '@aws-amplify/ui-react';
+import { ThemeProvider, UseAuthenticatorOutput } from '@aws-amplify/ui-react';
 import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 import StockQuote from "./components/StockQuote";
-import CustomAuthenticator from "./components/CustomAuthenticator"; // Import our new CustomAuthenticator
+import CustomAuthenticator from "./components/CustomAuthenticator";
 import theme from './AmplifyTheme';
 
 // Configure Amplify with environment variables
@@ -34,7 +34,7 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}> {/* Wrap the entire Authenticator component for the app with its theme */}
       {/* Use our CustomAuthenticator instead of the default Authenticator */}
       <CustomAuthenticator> {/* Wrap the entire app an with Authenticator component for user authentication */}
-        {({ signOut, user }) => (
+      {({ signOut, user }: UseAuthenticatorOutput) => (
           // This content will only be shown when the user is authenticated 
           <div className="min-h-screen bg-gray-900 py-6 flex flex-col justify-center sm:py-12">
             <div className="px-4 sm:px-6 lg:px-8">
