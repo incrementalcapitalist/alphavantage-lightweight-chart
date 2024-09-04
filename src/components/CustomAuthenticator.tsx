@@ -59,12 +59,12 @@ const components = {
 };
 
 // Define the CustomAuthenticator component
-const CustomAuthenticator: React.FC = ({ children }) => {
+const CustomAuthenticator: React.FC = ({}) => {
   return (
     // Use the Amplify Authenticator component with our custom components
     <Authenticator components={components}>
       {/* Render the children (the main app content) when authenticated */}
-      {children}
+      {<div>Loading...</div>}
     </Authenticator>
   );
 };
