@@ -1,7 +1,7 @@
 /**
  * @file App.tsx
- * @version 1.2.0
- * @description Main application component with authentication and stock quote functionality
+ * @version 1.3.0
+ * @description Main application component with updated Amplify configuration
  */
 
 import React from "react";
@@ -13,8 +13,10 @@ import StockQuote from "./components/StockQuote";
 // Configure Amplify
 Amplify.configure({
   Auth: {
-    userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
-    userPoolWebClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
+    Cognito: {
+      userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
+      userPoolClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
+    }
   }
 });
 
