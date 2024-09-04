@@ -48,7 +48,8 @@ const App: React.FC = () => {
                   <View className="bg-white w-full py-4">
                     <Heading
                       level={3}
-                      className="text-center font-pt-sans-narrow text-2xl text-emerald-600"
+                      className="text-center text-2xl text-emerald-600"
+                      style={{ fontFamily: '"PT Sans Narrow", sans-serif' }}
                     >
                       AlphaVantage Lightweight Charts
                     </Heading>
