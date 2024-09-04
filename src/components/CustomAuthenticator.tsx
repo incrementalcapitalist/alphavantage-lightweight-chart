@@ -1,8 +1,8 @@
 /**
  * @file CustomAuthenticator.tsx
- * @version 1.3.0
+ * @version 1.4.0
  * @description Custom Authenticator component with additional styling and functionality,
- * aligned with Cognito User Pool configuration
+ * aligned with the latest Cognito User Pool configuration and Amplify UI React library.
  */
 
 // Import necessary components and types from React and Amplify UI
@@ -21,8 +21,7 @@ import {
   PasswordField,
   PhoneNumberField,
   CheckboxField,
-  Alert,
-  UseAuthenticatorOutput
+  UseAuthenticator, // Updated from UseAuthenticatorOutput
 } from '@aws-amplify/ui-react';
 
 // Define custom components for the Authenticator
@@ -69,9 +68,12 @@ const components = {
 
   // Custom SignIn component
   SignIn: {
+    // Header for the SignIn form
     Header() {
+      // Use the useTheme hook to access theme tokens
       const { tokens } = useTheme();
       return (
+        // Create a heading for the sign-in form
         <Heading
           padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
           level={3}
@@ -80,14 +82,20 @@ const components = {
         </Heading>
       );
     },
+    // Footer for the SignIn form
     Footer() {
+      // Use the useAuthenticator hook to access authentication functions
       const { toResetPassword } = useAuthenticator();
       return (
+        // Create a container for the footer with centered text
         <View textAlign="center">
+          {/* Group the buttons together */}
           <ButtonGroup>
+            {/* Button to navigate to the reset password page */}
             <Button
               fontWeight="normal"
-              onClick={toResetPassword}
+              // Check if toResetPassword is available before using it
+              onClick={toResetPassword ? toResetPassword : () => console.log('Reset password not available')}
               size="small"
               variation="link"
             >
@@ -101,9 +109,12 @@ const components = {
 
   // Custom SignUp component
   SignUp: {
+    // Header for the SignUp form
     Header() {
+      // Use the useTheme hook to access theme tokens
       const { tokens } = useTheme();
       return (
+        // Create a heading for the sign-up form
         <Heading
           padding={`${tokens.space.xl} 0 0 ${tokens.space.xl}`}
           level={3}
@@ -112,6 +123,7 @@ const components = {
         </Heading>
       );
     },
+    // Custom form fields for the SignUp form
     FormFields() {
       return (
         <>
@@ -146,10 +158,14 @@ const components = {
         </>
       );
     },
+    // Footer for the SignUp form
     Footer() {
+      // Use the useAuthenticator hook to access authentication functions
       const { toSignIn } = useAuthenticator();
       return (
+        // Create a container for the footer with centered text
         <View textAlign="center">
+          {/* Button to navigate back to the sign-in page */}
           <Button
             fontWeight="normal"
             onClick={toSignIn}
@@ -164,9 +180,13 @@ const components = {
   },
 };
 
-// Define the props interface for CustomAuthenticator
+/**
+ * Props interface for the CustomAuthenticator component
+ * @interface CustomAuthenticatorProps
+ * @property {(authProps: UseAuthenticator) => ReactNode} children - Function that renders the authenticated content
+ */
 interface CustomAuthenticatorProps {
-  children: (authProps: UseAuthenticatorOutput) => ReactNode;
+  children: (authProps: UseAuthenticator) => ReactNode;
 }
 
 /**
@@ -179,7 +199,7 @@ const CustomAuthenticator: React.FC<CustomAuthenticatorProps> = ({ children }) =
     // Use the Amplify Authenticator component with our custom components
     <Authenticator components={components}>
       {/* Render the children (the main app content) when authenticated */}
-      {(authProps) => children(authProps)}
+      {children}
     </Authenticator>
   );
 };
