@@ -1,4 +1,4 @@
-# Get AlphaVantage Quotation
+# Basic Technical Analysis
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) 
 
@@ -20,11 +20,12 @@
 
 ## Overview
 
-AlphaVantage Lightweight Chart is a modern, responsive web application built with React, TypeScript, and Vite. It allows users to easily fetch and display real-time stock quotes using the Alpha Vantage API. This project demonstrates the implementation of a clean, user-friendly interface for financial data retrieval, showcasing best practices in React development, API integration, and responsive design.
-
+This app is designed for trend and momentum traders. It uses Heikin-Ashi candles to help spot trends.
 ## Features
 
 - Real-time stock quote fetching
+- Heikin-Ashi chart visualization for historical data
+- AWS Amplify authentication integration
 - Responsive design for various screen sizes
 - User-friendly interface with input validation
 - Comprehensive display of stock data in a formatted table
@@ -33,14 +34,14 @@ AlphaVantage Lightweight Chart is a modern, responsive web application built wit
 
 ## Technologies Used
 
-- **React**: A JavaScript library for building user interfaces
-- **TypeScript**: A typed superset of JavaScript that compiles to plain JavaScript
-- **Vite**: A build tool that aims to provide a faster and leaner development experience for modern web projects
-- **Tailwind CSS**: A utility-first CSS framework for rapidly building custom designs
-- **Alpha Vantage API**: Provides realtime and historical financial market data
-- **ESLint**: A tool for identifying and reporting on patterns found in ECMAScript/JavaScript code
-- **Prettier**: An opinionated code formatter
-- **Vitest**: A Vite-native unit test framework with a Jest-compatible API
+- React with TypeScript
+- Vite
+- Tailwind CSS
+- Alpha Vantage API
+- AWS Amplify for authentication
+- Lightweight Charts for data visualization
+- @fontsource/pt-sans-narrow for custom typography
+- ESLint, Prettier, Vitest
 
 ## Getting Started
 
@@ -48,24 +49,41 @@ AlphaVantage Lightweight Chart is a modern, responsive web application built wit
 
 - Node.js (version 14.0.0 or later)
 - npm (usually comes with Node.js)
+- AWS account for Amplify and Cognito setup
 
 ### Installation
 
-1. Clone the repository:
-   ```
-   git clone git@github.com:incrementalcapitalist/alphavantage-lightweight-chart.git
-   cd alphavantage-lightweight-chart
-   ```
+1. Clone the repository
 
-2. Install dependencies:
-   ```
-   npm install
-   ```
+```bash
+  git clone git@github.com:incrementalcapitalist/alphavantage-lightweight-chart.git
+  cd alphavantage-lightweight-chart
+  ```
+2. Install dependencies
 
-3. Create a `.env` file in the root directory and add your Alpha Vantage API key:
-   ```
-   VITE_ALPHA_VANTAGE_API_KEY=your_api_key_here
-   ```
+```bash
+  npm install
+```
+
+3. Set up AWS Amplify and Cognito:
+
+```bash
+  amplify init
+  amplify add auth
+  amplify push
+```
+
+4. Create a `.env` file in the root directory and add your API keys and Cognito details:
+
+```bash
+  VITE_ALPHA_VANTAGE_API_KEY=your_api_key_here
+  VITE_COGNITO_USER_POOL_ID=your_user_pool_id
+  VITE_COGNITO_CLIENT_ID=your_client_id
+```
+
+## Authentication
+
+This project uses AWS Amplify for authentication. The Amplify Authenticator component is integrated into the main App component, providing secure sign-up, sign-in, and sign-out functionality.
 
 ## Usage
 
@@ -111,11 +129,13 @@ alphavantage-lightweight-chart/
 
 ## API Integration
 
-This project uses the Alpha Vantage API to fetch stock quotes. The API key is stored in an environment variable for security. The `StockQuote` component handles the API request and data processing.
+This project uses the Alpha Vantage API to fetch stock quotes and historical data. Two endpoints are used:
+- Global Quote: For current stock data
+- Time Series (Daily): For historical data used in the Heikin-Ashi chart
 
 ## Styling
 
-Tailwind CSS is used for styling, providing a responsive and clean user interface. The styles are defined inline using Tailwind's utility classes, allowing for rapid development and easy maintenance.
+Tailwind CSS is used for styling, along with custom fonts from @fontsource/pt-sans-narrow. AWS Amplify UI components are styled to match the overall theme of the application.
 
 ## Testing
 
