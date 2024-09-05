@@ -291,12 +291,12 @@ const StockQuote: React.FC = () => {
 
       if (!heikinAshiSeriesRef.current) {
         heikinAshiSeriesRef.current = chartRef.current.addCandlestickSeries({
-          upColor: '#FFFFFF', // White for up days
-          downColor: '#8B5CF6', // Purple for down days
-          borderUpColor: '#FFFFFF',
-          borderDownColor: '#8B5CF6',
-          wickUpColor: '#FFFFFF',
-          wickDownColor: '#8B5CF6',
+          upColor: '#8B5CF6', // Purple for up days
+          downColor: '#f97316', // Orange for down days
+          borderUpColor: '#8B5CF6',
+          borderDownColor: '#f97316',
+          wickUpColor: '#8B5CF6',
+          wickDownColor: '#f97316',
         });
       }
 
@@ -337,7 +337,7 @@ const StockQuote: React.FC = () => {
           onChange={(e) => setSymbol(e.target.value.toUpperCase())}
           onKeyPress={handleKeyPress}
           placeholder="Enter stock symbol (e.g., AAPL)"
-          className="w-full p-3 bg-gray-800 border border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-400 text-lg"
+          className="w-full p-3 bg-gray-800 border border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-400 text-lg text-center"
           aria-label="Stock Symbol"
         />
       </div>
@@ -347,7 +347,7 @@ const StockQuote: React.FC = () => {
         className="w-full bg-purple-600 text-white p-3 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50 text-lg font-semibold"
         aria-busy={loading}
       >
-        {loading ? "Fetching Data..." : "Fetch Quote"}
+        {loading ? "FETCHING DATA..." : "FETCH QUOTE"}
       </button>
       {error && (
         <p className="mt-4 text-red-400 bg-red-900 p-3 rounded-md" role="alert">
