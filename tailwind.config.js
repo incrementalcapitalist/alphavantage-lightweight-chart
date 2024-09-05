@@ -7,18 +7,21 @@
 
 module.exports = {
   // Specify the files to scan for class names
+  // This helps Tailwind identify which classes are actually used in your project
   content: [
-    "./public/index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "./src/css/index.css"
+    "./public/index.html",        // Scan the main HTML file
+    "./src/**/*.{js,ts,jsx,tsx}", // Scan all JS/TS files in src directory and subdirectories
+    "./src/css/index.css"         // Scan the main CSS file
   ],
   
   // Define theme customizations
   theme: {
     extend: {
       // Extend the default color palette with custom colors
+      // This allows you to use these custom colors in your Tailwind classes
       colors: {
         // Custom purple shades
+        // These can be used like 'bg-purple-500' or 'text-purple-700'
         purple: {
           50: '#f5f3ff',
           100: '#ede9fe',
@@ -32,6 +35,7 @@ module.exports = {
           900: '#4c1d95',
         },
         // Custom gray shades for dark mode
+        // These override Tailwind's default gray palette
         gray: {
           50: '#f9fafb',
           100: '#f3f4f6',
@@ -49,5 +53,6 @@ module.exports = {
   },
   
   // Add any Tailwind CSS plugins here
+  // Plugins can extend Tailwind's functionality
   plugins: [],
 };
