@@ -1,6 +1,6 @@
 /**
  * @file App.tsx
- * @version 3.5.1
+ * @version 3.5.2
  * @description Main application component with enhanced UI, custom Amplify Authenticator, and updated styling
  */
 
@@ -10,6 +10,7 @@ import { Authenticator, ThemeProvider, View, Heading, Button } from '@aws-amplif
 import { Amplify } from 'aws-amplify';
 import '@aws-amplify/ui-react/styles.css';
 import '@fontsource/pt-sans-narrow';
+import logoImage from "../public/logo512.png";
 import StockQuote from "./components/StockQuote";
 import theme from './AmplifyTheme';
 
@@ -45,7 +46,7 @@ const App: React.FC = () => {
                 return (
                   <View className="bg-white w-full py-4 flex flex-col items-center justify-center">
                     <img 
-                      src="./logo512.png"
+                      src={logoImage}
                       alt="App Logo" 
                       className="h-24 w-24 mb-4" 
                     />
@@ -80,7 +81,7 @@ const App: React.FC = () => {
               <View className="bg-gray-800 p-6 rounded-lg shadow-lg">
                 <View className="flex justify-center mb-6"> {/* Display icon/logo */}
                   <img 
-                    src="./logo512.png"
+                    src={logoImage}
                     alt="App Logo" 
                     className="h-24 w-24" 
                   />
