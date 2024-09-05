@@ -1,7 +1,18 @@
 /**
  * @file StockQuote.tsx
- * @version 1.3.0
+ * @version 1.3.1
  * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart
+ * 
+ * Heikin-Ashi Calculation:
+ * Heikin-Ashi candlesticks are a variation of traditional candlesticks, designed to filter out market noise
+ * and better identify trends. The calculation is as follows:
+ * 
+ * - HA Close = (Open + High + Low + Close) / 4
+ * - HA Open = (Previous HA Open + Previous HA Close) / 2
+ * - HA High = Max(High, HA Open, HA Close)
+ * - HA Low = Min(Low, HA Open, HA Close)
+ * 
+ * This technique helps smooth price action and make trends more easily identifiable.
  */
 
 import React, { useState, useEffect, useRef } from "react";
