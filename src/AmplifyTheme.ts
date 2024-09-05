@@ -1,7 +1,11 @@
 /**
  * @file AmplifyTheme.ts
- * @version 1.6.0
- * @description Custom theme for Amplify UI components, adjusted for TypeScript compatibility
+ * @version 1.0.0
+ * @description Custom theme for AWS Amplify UI components
+ * 
+ * This file defines a custom theme for Amplify UI components to match the overall
+ * design of the Basic Technical Analysis application. It overrides default styles
+ * to ensure consistency with the app's color scheme and typography.
  */
 
 import { createTheme } from '@aws-amplify/ui-react';
