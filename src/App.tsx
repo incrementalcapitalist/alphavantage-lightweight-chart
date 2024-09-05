@@ -1,6 +1,6 @@
 /**
  * @file App.tsx
- * @version 3.5.2
+ * @version 3.5.3
  * @description Main application component with enhanced UI, custom Amplify Authenticator, and updated styling
  */
 
@@ -28,6 +28,14 @@ Amplify.configure({
 /**
  * Main application component
  * @returns {JSX.Element} The rendered App component
+ * 
+ * Authentication Flow:
+ * 1. The Amplify Authenticator wraps the entire application.
+ * 2. It handles sign-up, sign-in, and sign-out processes.
+ * 3. Only authenticated users can access the StockQuote component.
+ * 4. The custom Header component provides branding and improves UX.
+ * 5. The Footer component displays copyright information.
+ * 6. After authentication, users can access the main functionality and sign out.
  */
 const App: React.FC = () => {
   return (
