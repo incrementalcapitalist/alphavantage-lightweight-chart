@@ -48,14 +48,14 @@ const App: React.FC = () => {
                     <img 
                       src={logoImage}
                       alt="App Logo" 
-                      className="h-24 w-24 mb-4" 
+                      className="h-12 w-12 mb-4" 
                     />
                     <Heading
                       level={3}
                       className="text-center text-2xl text-emerald-600"
                       style={{ fontFamily: '"PT Sans Narrow", sans-serif' }}
                     >
-                      AlphaVantage Lightweight Charts
+                      Basic Technical Analysis
                     </Heading>
                   </View>
                 );
@@ -83,7 +83,7 @@ const App: React.FC = () => {
                   <img 
                     src={logoImage}
                     alt="App Logo" 
-                    className="h-24 w-24" 
+                    className="h-12 w-12" 
                   />
                 </View>
                 <StockQuote />
