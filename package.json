@@ -5,6 +5,10 @@
   "description": "A basic React/Typescript/Vite application for fetching stock quotes from AlphaVantage and displaying historical data with the TradingView Lightweight Chart library.",
   "author": "Incremental Capitalist",
   "license": "LGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/incrementalcapitalist/alphavantage-lightweight-chart.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
