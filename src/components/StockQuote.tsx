@@ -1,7 +1,8 @@
 /**
  * @file StockQuote.tsx
- * @version 1.3.1
- * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart
+ * @version 2.0.0
+ * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart,
+ * now integrated with AWS Lambda and API Gateway.
  * 
  * Heikin-Ashi Calculation:
  * Heikin-Ashi candlesticks are a variation of traditional candlesticks, designed to filter out market noise
@@ -15,8 +16,10 @@
  * This technique helps smooth price action and make trends more easily identifiable.
  */
 
+// Import necessary dependencies
 import React, { useState, useEffect, useRef } from "react";
 import { createChart, IChartApi, ISeriesApi } from "lightweight-charts";
+import { API } from 'aws-amplify';
 
 // Global type declarations
 declare global {
@@ -61,11 +64,6 @@ interface AlphaVantageResponse {
   };
 }
 
-interface ChartDataPoint {
-  time: string;
-  value: number;
-}
-
 interface HeikinAshiDataPoint {
   time: string;
   open: number;
@@ -80,34 +78,19 @@ interface HeikinAshiDataPoint {
  */
 const StockQuote: React.FC = () => {
   // State hooks
-  const [symbol, setSymbol] = useState<string>("");
-  const [stockData, setStockData] = useState<StockData | null>(null);
-  const [error, setError] = useState<APIError | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [historicalData, setHistoricalData] = useState<ChartDataPoint[]>([]);
-  const [heikinAshiData, setHeikinAshiData] = useState<HeikinAshiDataPoint[]>([]);
+  const [symbol, setSymbol] = useState<string>(""); // State for storing the stock symbol
+  const [stockData, setStockData] = useState<StockData | null>(null); // State for storing fetched stock data
+  const [error, setError] = useState<APIError | null>(null); // State for storing any errors
+  const [loading, setLoading] = useState<boolean>(false); // State for tracking loading status
+  const [heikinAshiData, setHeikinAshiData] = useState<HeikinAshiDataPoint[]>([]); // State for storing Heikin-Ashi chart data
 
   // Ref hooks
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-  const heikinAshiSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null); // Ref for the chart container div
+  const chartRef = useRef<IChartApi | null>(null); // Ref for the chart instance
+  const heikinAshiSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null); // Ref for the Heikin-Ashi candlestick series
 
   /**
-   * Constructs API URL with parameters
-   * @param {string} baseUrl - The base URL of the API
-   * @param {Record<string, string>} params - The parameters to be added to the URL
-   * @returns {string} The constructed URL
-   */
-  const constructApiUrl = (baseUrl: string, params: Record<string, string>): string => {
-    const url = new URL(baseUrl);
-    Object.entries(params).forEach(([key, value]) => {
-      url.searchParams.append(key, value);
-    });
-    return url.toString();
-  };
-
-  /**
-   * Fetches stock data from the API
+   * Fetches stock data from the AWS Lambda function via API Gateway
    */
   const fetchStockData = async () => {
     // Input validation
@@ -122,33 +105,25 @@ const StockQuote: React.FC = () => {
     setStockData(null);
 
     try {
-      // Construct API URL for global quote
-      const apiUrl = constructApiUrl('https://www.alphavantage.co/query', {
-        function: 'GLOBAL_QUOTE',
-        symbol,
-        apikey: import.meta.env.VITE_ALPHA_VANTAGE_API_KEY,
+      // Fetch data using AWS API Gateway
+      const response = await API.get('StockQuoteAPI', '/globalquote', {
+        queryStringParameters: {
+          symbol: symbol
+        }
       });
 
-      // Fetch data
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: AlphaVantageResponse = await response.json();
-      console.log("Global Quote Response:", data);
+      console.log("Global Quote Response:", response);
 
       // Error handling
-      if ('Error Message' in data) {
-        throw new Error(data['Error Message'] as string);
+      if (response.error) {
+        throw new Error(response.error);
       }
 
-      const quote = data['Global Quote'];
-      if (!quote || Object.keys(quote).length === 0) {
-        throw new Error("No data found for this symbol");
-      }
+      // Parse and set the stock data
+      const parsedData = JSON.parse(response.body);
+      setStockData(parsedData);
 
-      setStockData(quote);
+      // Fetch historical data for the chart
       await fetchHistoricalData(symbol);
     } catch (err) {
       handleError(err);
@@ -163,50 +138,24 @@ const StockQuote: React.FC = () => {
    */
   const fetchHistoricalData = async (symbol: string): Promise<void> => {
     try {
-      // Construct API URL for TIME_SERIES_DAILY_ADJUSTED
-      let apiUrl = constructApiUrl('https://www.alphavantage.co/query', {
-        function: 'TIME_SERIES_DAILY_ADJUSTED',
-        symbol,
-        apikey: import.meta.env.VITE_ALPHA_VANTAGE_API_KEY,
-      });
+      // Note: This function still uses the direct AlphaVantage API call.
+      // In a production environment, you might want to create another Lambda function for this.
+      const apiUrl = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${symbol}&apikey=${import.meta.env.VITE_ALPHA_VANTAGE_API_KEY}`;
 
-      let response = await fetch(apiUrl);
+      const response = await fetch(apiUrl);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      let data: AlphaVantageResponse = await response.json();
-      console.log("Historical Data Response:", data);
+      const data: AlphaVantageResponse = await response.json();
 
       if ('Error Message' in data) {
         throw new Error(data['Error Message'] as string);
       }
 
-      let timeSeries = data['Time Series (Daily)'];
+      const timeSeries = data['Time Series (Daily)'];
       if (!timeSeries) {
-        // Fallback to TIME_SERIES_DAILY if ADJUSTED is not available
-        apiUrl = constructApiUrl('https://www.alphavantage.co/query', {
-          function: 'TIME_SERIES_DAILY',
-          symbol,
-          apikey: import.meta.env.VITE_ALPHA_VANTAGE_API_KEY,
-        });
-
-        response = await fetch(apiUrl);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        data = await response.json();
-        console.log("Historical Data Response (Alternative Endpoint):", data);
-
-        if ('Error Message' in data) {
-          throw new Error(data['Error Message'] as string);
-        }
-
-        timeSeries = data['Time Series (Daily)'];
-        if (!timeSeries) {
-          throw new Error('No time series data found');
-        }
+        throw new Error('No time series data found');
       }
 
       const heikinAshiData: HeikinAshiDataPoint[] = calculateHeikinAshi(timeSeries);
@@ -280,6 +229,7 @@ const StockQuote: React.FC = () => {
   useEffect(() => {
     if (heikinAshiData.length > 0 && chartContainerRef.current) {
       if (!chartRef.current) {
+        // Create the chart if it doesn't exist
         chartRef.current = createChart(chartContainerRef.current, {
           width: chartContainerRef.current.clientWidth,
           height: 400,
@@ -301,6 +251,7 @@ const StockQuote: React.FC = () => {
       }
 
       if (!heikinAshiSeriesRef.current) {
+        // Add the Heikin-Ashi candlestick series if it doesn't exist
         heikinAshiSeriesRef.current = chartRef.current.addCandlestickSeries({
           upColor: '#8B5CF6', // Purple for up days
           downColor: '#f97316', // Orange for down days
@@ -311,6 +262,7 @@ const StockQuote: React.FC = () => {
         });
       }
 
+      // Set the data and fit the chart content
       heikinAshiSeriesRef.current.setData(heikinAshiData);
       chartRef.current.timeScale().fitContent();
     }

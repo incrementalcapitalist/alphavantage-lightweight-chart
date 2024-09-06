@@ -1,0 +1,14 @@
+{
+    "api": {
+        "StockQuoteAPI": {
+                "service": "API Gateway",
+                "providerPlugin": "awscloudformation",
+                "dependsOn": [],
+                "output": {
+                "apiName": "StockQuoteAPI",
+                "RootUrl": "https://5of9o35v0h.execute-api.us-east-1.amazonaws.com/production",
+                "ApiId": "5of9o35v0h"
+            }
+        }
+    }
+}
