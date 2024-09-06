@@ -1,9 +1,9 @@
 /**
  * @file main.tsx
- * @version 3.1.0
+ * @version 3.2.0
  * @description Entry point for the React application with complete Amplify configuration.
- * This file sets up the React root, configures Amplify for both API and Auth, and renders the main App component.
- * It centralizes all Amplify configurations and ensures proper initialization before rendering the app.
+ * This file sets up the React root, configures Amplify for both API endpoints (Global Quote and Historical Data) and Auth,
+ * and renders the main App component. It centralizes all Amplify configurations and ensures proper initialization before rendering the app.
  * @author Incremental Capitalist
  * @copyright 2024 Incremental Capital LLC
  * @license GNU GENERAL PUBLIC LICENSE V3
@@ -17,18 +17,25 @@ import './css/index.css'; // Import global CSS styles
 
 /**
  * Configure Amplify settings with environment variables.
- * This setup includes both API and Auth configurations in one place.
+ * This setup includes configurations for both API endpoints (Global Quote and Historical Data) and Auth.
  * @see https://docs.amplify.aws/lib/client-configuration/configuring-amplify/q/platform/js/
  */
 Amplify.configure({
   // Configure API settings for REST endpoints
   API: {
     REST: {
-      // Configuration for the StockQuoteAPI
+      // Configuration for the Global Quote API
       StockQuoteAPI: {
-        // Set the API endpoint using an environment variable
+        // Set the API endpoint for Global Quote using an environment variable
         endpoint: import.meta.env.VITE_LAMBDA_ALPHA_VANTAGE_API_ENDPOINT,
         // Set the AWS region using an environment variable
+        region: import.meta.env.VITE_LAMBDA_ALPHA_VANTAGE_API_REGION
+      },
+      // Configuration for the Historical Data API
+      HistoricalDataAPI: {
+        // Set the API endpoint for Historical Data using an environment variable
+        endpoint: import.meta.env.VITE_LAMBDA_ALPHA_VANTAGE_HISTORICAL_DATA_API_ENDPOINT,
+        // Set the AWS region using an environment variable (assuming it's the same as the Global Quote API)
         region: import.meta.env.VITE_LAMBDA_ALPHA_VANTAGE_API_REGION
       }
     }
@@ -81,9 +88,12 @@ Amplify.configure({
  * @typedef {Object} AmplifyConfig
  * @property {Object} API - Configuration for API
  * @property {Object} API.REST - REST API configuration
- * @property {Object} API.REST.StockQuoteAPI - Specific API endpoint configuration
- * @property {string} API.REST.StockQuoteAPI.endpoint - API endpoint URL
- * @property {string} API.REST.StockQuoteAPI.region - AWS region for the API
+ * @property {Object} API.REST.StockQuoteAPI - Global Quote API endpoint configuration
+ * @property {string} API.REST.StockQuoteAPI.endpoint - Global Quote API endpoint URL
+ * @property {string} API.REST.StockQuoteAPI.region - AWS region for the Global Quote API
+ * @property {Object} API.REST.HistoricalDataAPI - Historical Data API endpoint configuration
+ * @property {string} API.REST.HistoricalDataAPI.endpoint - Historical Data API endpoint URL
+ * @property {string} API.REST.HistoricalDataAPI.region - AWS region for the Historical Data API
  * @property {Object} Auth - Configuration for Authentication
  * @property {Object} Auth.Cognito - Amazon Cognito specific configuration
  * @property {string} Auth.Cognito.userPoolId - Cognito User Pool ID
@@ -92,8 +102,9 @@ Amplify.configure({
 
 /**
  * @typedef {Object} Environment
- * @property {string} VITE_LAMBDA_ALPHA_VANTAGE_API_ENDPOINT - API endpoint for Alpha Vantage
- * @property {string} VITE_LAMBDA_ALPHA_VANTAGE_API_REGION - AWS region for Alpha Vantage API
+ * @property {string} VITE_LAMBDA_ALPHA_VANTAGE_API_ENDPOINT - API endpoint for Global Quote
+ * @property {string} VITE_LAMBDA_ALPHA_VANTAGE_HISTORICAL_DATA_API_ENDPOINT - API endpoint for Historical Data
+ * @property {string} VITE_LAMBDA_ALPHA_VANTAGE_API_REGION - AWS region for Alpha Vantage APIs
  * @property {string} VITE_COGNITO_USER_POOL_ID - Cognito User Pool ID
  * @property {string} VITE_COGNITO_CLIENT_ID - Cognito App Client ID
  */
