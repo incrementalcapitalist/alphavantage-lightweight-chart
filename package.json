@@ -20,9 +20,10 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@aws-amplify/cli": "^12.12.6",
     "@aws-amplify/ui-react": "^6.2.0",
     "@fontsource/pt-sans-narrow": "^5.0.22",
-    "aws-amplify": "^6.5.3",
+    "aws-amplify": "^6.6.0",
     "lightweight-charts": "4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
