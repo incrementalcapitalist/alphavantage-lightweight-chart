@@ -20,7 +20,7 @@
 import React, { useState, useEffect, useRef } from "react"; // React and its hooks for component logic
 import { createChart, IChartApi, ISeriesApi } from "lightweight-charts"; // Library for creating financial charts
 import { fetchAuthSession } from 'aws-amplify/auth'; // Amplify v6 auth session fetching
-import { get } from 'aws-amplify/api'; // Amplify v6 API for making GET requests
+import { get, GetOperationOutput } from 'aws-amplify/api'; // Amplify v6 API for making GET requests
 
 // Global type declarations
 declare global {
@@ -122,7 +122,7 @@ const StockQuote: React.FC = () => {
       await fetchAuthSession();
 
       // Fetch data using AWS API Gateway through Amplify v6 API
-      const response = await get({
+      const response: GetOperationOutput = await get({
         apiName: 'StockQuoteAPI',
         path: '/globalquote',
         options: {
@@ -136,11 +136,11 @@ const StockQuote: React.FC = () => {
 
       // Error handling
       if ('error' in response) {
-        throw new Error(response.error as string);
+        throw new Error(JSON.stringify(response.error));
       }
 
       // Set the stock data
-      setStockData(response.body as StockData);
+      setStockData(JSON.parse(response.body) as StockData);
 
       // Fetch historical data for the chart
       await fetchHistoricalData(symbol);
@@ -158,7 +158,7 @@ const StockQuote: React.FC = () => {
   const fetchHistoricalData = async (symbol: string): Promise<void> => {
     try {
       // Fetch historical data using Amplify v6 API
-      const response = await get({
+      const response: GetOperationOutput = await get({
         apiName: 'StockQuoteAPI',
         path: '/historical',
         options: {
@@ -168,7 +168,7 @@ const StockQuote: React.FC = () => {
         }
       });
 
-      const data: AlphaVantageResponse = response.body as AlphaVantageResponse;
+      const data: AlphaVantageResponse = JSON.parse(response.body) as AlphaVantageResponse;
 
       // Check for error message in the response
       if ('Error Message' in data) {
