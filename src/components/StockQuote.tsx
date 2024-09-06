@@ -1,8 +1,29 @@
 /**
  * @file StockQuote.tsx
- * @version 3.2.0
+ * @version 3.3.0
  * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart,
- * integrated with AWS Amplify v6, AWS Lambda, and API Gateway. Styled to match the provided design.
+ * integrated with AWS Amplify v6, AWS Lambda, and API Gateway. This component provides a user interface
+ * for entering a stock symbol, fetching real-time and historical data from separate endpoints, and displaying it in both
+ * tabular format and as a Heikin-Ashi chart.
+ * 
+ * Key Features:
+ * - Real-time stock data fetching using AWS Amplify v6 from a dedicated Global Quote endpoint
+ * - Historical data retrieval from a separate Historical Data endpoint
+ * - Heikin-Ashi chart rendering using lightweight-charts
+ * - Responsive design with Tailwind CSS
+ * - Error handling and loading states
+ * 
+ * Dependencies:
+ * - React (^18.0.0)
+ * - AWS Amplify (^6.0.0)
+ * - lightweight-charts (^4.0.0)
+ * - Tailwind CSS (^3.0.0)
+ * 
+ * API Integration:
+ * - Uses AWS API Gateway (configured as 'StockQuoteAPI' in Amplify)
+ * - Endpoints:
+ *   - /globalquote: Fetches real-time stock data
+ *   - /historical: Retrieves historical stock data for charting
  * 
  * Heikin-Ashi Calculation:
  * Heikin-Ashi candlesticks are a variation of traditional candlesticks, designed to filter out market noise
@@ -14,14 +35,17 @@
  * - HA Low = Min(Low, HA Open, HA Close)
  * 
  * This technique helps smooth price action and make trends more easily identifiable.
+ * 
+ * @author Incremental Capitalist
+ * @copyright 2024 Incremental Capital LLC
+ * @license GNU GENERAL PUBLIC LICENSE V3
  */
 
 // Import necessary dependencies
 import React, { useState, useEffect, useRef } from "react";
 import { createChart, IChartApi, ISeriesApi } from "lightweight-charts";
 import { fetchAuthSession } from 'aws-amplify/auth';
-import { get, isCancelError } from 'aws-amplify/api';
-import { Amplify } from 'aws-amplify';
+import { get } from 'aws-amplify/api';
 
 // Global type declarations
 declare global {
@@ -49,9 +73,9 @@ interface StockData {
 }
 
 /**
- * Represents the structure of the Alpha Vantage API response
+ * Represents the structure of the Alpha Vantage API response for historical data
  */
-interface AlphaVantageResponse {
+interface AlphaVantageHistoricalResponse {
   'Meta Data': {
     '1. Information': string;
     '2. Symbol': string;
@@ -70,9 +94,6 @@ interface AlphaVantageResponse {
       '7. dividend amount': string;
       '8. split coefficient': string;
     };
-  };
-  'Global Quote'?: {
-    [key: string]: string;
   };
 }
 
@@ -123,9 +144,9 @@ const StockQuote: React.FC = () => {
       // Ensure we have a valid auth session before making the API call
       await fetchAuthSession();
 
-      // Fetch data using AWS API Gateway through Amplify v6 API
+      // Fetch global quote data using AWS API Gateway through Amplify v6 API
       const { body } = await get({
-        apiName: 'StockQuoteAPI', // Name of the API configured in Amplify
+        apiName: 'StockQuoteAPI', // Name of the API configured in Amplify for global quote
         path: '/globalquote', // Path for the global quote endpoint
         options: {
           queryParams: {
@@ -139,13 +160,7 @@ const StockQuote: React.FC = () => {
 
       console.log("Global Quote Response:", globalQuoteResponse); // Log the response for debugging
 
-      // Error handling
-      if ('error' in isCancelError) {
-        // If the response contains an error property, throw an error
-        throw new Error(JSON.stringify(isCancelError));
-      }
-
-      // Set the stock data, accessing the 'Global Quote' property of the response
+      // Set the stock data from the global quote response
       setStockData(globalQuoteResponse as StockData);
 
       // Fetch historical data for the chart
@@ -165,7 +180,7 @@ const StockQuote: React.FC = () => {
     try {
       // Fetch historical data using Amplify v6 API
       const { body } = await get({
-        apiName: 'StockQuoteAPI', // Name of the API configured in Amplify
+        apiName: 'HistoricalDataAPI', // Name of the API configured in Amplify for historical data
         path: '/historical', // Path for the historical data endpoint
         options: {
           queryParams: {
@@ -177,12 +192,12 @@ const StockQuote: React.FC = () => {
       // Parse the response body as JSON
       const jsonData = await body.json();
       
-      // Type guard to check if jsonData is AlphaVantageResponse
-      if (!isAlphaVantageResponse(jsonData)) {
+      // Type guard to check if jsonData is AlphaVantageHistoricalResponse
+      if (!isAlphaVantageHistoricalResponse(jsonData)) {
         throw new Error('Invalid response format');
       }
 
-      const data: AlphaVantageResponse = jsonData;
+      const data: AlphaVantageHistoricalResponse = jsonData;
 
       // Check for error message in the response
       if ('Error Message' in data) {
@@ -206,11 +221,11 @@ const StockQuote: React.FC = () => {
   };
 
   /**
-   * Type guard function to check if the data is AlphaVantageResponse
+   * Type guard function to check if the data is AlphaVantageHistoricalResponse
    * @param {any} data - The data to check
-   * @returns {boolean} True if the data is AlphaVantageResponse, false otherwise
+   * @returns {boolean} True if the data is AlphaVantageHistoricalResponse, false otherwise
    */
-  function isAlphaVantageResponse(data: any): data is AlphaVantageResponse {
+  function isAlphaVantageHistoricalResponse(data: any): data is AlphaVantageHistoricalResponse {
     return (
       data &&
       typeof data === 'object' &&
@@ -221,10 +236,10 @@ const StockQuote: React.FC = () => {
 
   /**
    * Calculates Heikin-Ashi candles from time series data
-   * @param {AlphaVantageResponse['Time Series (Daily)']} timeSeries - The time series data
+   * @param {AlphaVantageHistoricalResponse['Time Series (Daily)']} timeSeries - The time series data
    * @returns {HeikinAshiDataPoint[]} The calculated Heikin-Ashi data
    */
-  const calculateHeikinAshi = (timeSeries: AlphaVantageResponse['Time Series (Daily)']): HeikinAshiDataPoint[] => {
+  const calculateHeikinAshi = (timeSeries: AlphaVantageHistoricalResponse['Time Series (Daily)']): HeikinAshiDataPoint[] => {
     const heikinAshiData: HeikinAshiDataPoint[] = [];
     let prevHA: HeikinAshiDataPoint | null = null;
 
@@ -364,49 +379,49 @@ const StockQuote: React.FC = () => {
       <button
         onClick={fetchStockData}  // Trigger fetchStockData when button is clicked
         disabled={loading} // Disable button when loading
-        className="w-full bg-purple-600 text-white p-3 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50 text-lg font-semibold"
+        className="w-full bg-purple-600 text-white p-3 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50 text-lg font-semibold uppercase"
         aria-busy={loading}
       >
         {loading ? "FETCHING DATA..." : "Lightweight Chart"}
-      </button>
-      {error && (
-        <p className="mt-4 text-red-400 bg-red-900 p-3 rounded-md" role="alert">
-          Error: {error.message}
-        </p>
-      )}
-      <div className="mt-8 p-4 bg-gray-800 rounded-lg shadow-inner">
-        <div ref={chartContainerRef} className="w-full h-[400px]"></div>
-      </div>
-      {stockData && (
-        <div className="mt-8 overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead className="bg-gray-800">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-purple-300 uppercase tracking-wider">
-                  Field
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-purple-300 uppercase tracking-wider">
-                  Value
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-gray-900 divide-y divide-gray-800">
-              {Object.entries(stockData).map(([key, value]) => (
-                <tr key={key} className="hover:bg-gray-800 transition-colors duration-150">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-200">
-                    {formatKey(key)} {/* Display formatted key */}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-purple-300">
-                    {value} {/* Display corresponding value */}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        </button>
+        {error && (
+          <p className="text-center mt-4 text-red-400 bg-red-900 p-3 rounded-md uppercase" role="alert">
+            Error: {error.message}
+          </p>
+        )}
+        <div className="mt-8 p-4 bg-gray-800 rounded-lg shadow-inner">
+          <div ref={chartContainerRef} className="w-full h-[400px]"></div>
         </div>
-      )}
-    </div>
-  );
-};
-
-export default StockQuote; // Export the StockQuote component as the default export
+        {stockData && (
+          <div className="mt-8 overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-800">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-purple-300 uppercase tracking-wider">
+                    Field
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-sm font-medium text-purple-300 uppercase tracking-wider">
+                    Value
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-gray-900 divide-y divide-gray-800">
+                {Object.entries(stockData).map(([key, value]) => (
+                  <tr key={key} className="hover:bg-gray-800 transition-colors duration-150">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-200">
+                      {formatKey(key)} {/* Display formatted key */}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-purple-300">
+                      {value} {/* Display corresponding value */}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  };
+  
+  export default StockQuote; // Export the StockQuote component as the default export
