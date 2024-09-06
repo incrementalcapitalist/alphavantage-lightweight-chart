@@ -1,7 +1,7 @@
 {
   "name": "essential-technical-analysis",
   "private": true,
-  "version": "1.0.0",
+  "version": "3.8.0",
   "description": "A most essential React/Typescript/Vite application for AI-enhanced technical analysis powered by AlphaVantage and the TradingView Lightweight Chart library.",
   "author": "Incremental Capitalist",
   "license": "LGPL-3.0-or-later",

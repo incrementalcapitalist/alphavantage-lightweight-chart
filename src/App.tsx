@@ -1,9 +1,12 @@
 /**
  * @file App.tsx
- * @version 3.7.0
+ * @version 3.8.0
  * @description Main application component with enhanced UI, custom Amplify Authenticator, and updated styling
  * to match the StockQuote component and ensure consistency across the app. Includes improvements to layout
  * and styling of the authentication dialog, and implements the simplified AmplifyTheme.
+ * @author Incremental Capitalist
+ * @copyright 2024 Incremental Capital LLC
+ * @license GNU GENERAL PUBLIC LICENSE V3
  */
 
 // Import React for JSX support and type checking
@@ -11,17 +14,14 @@ import React from "react";
 
 // Import necessary components and hooks from Amplify UI React library
 import { 
-  Authenticator, 
-  ThemeProvider, 
-  View, 
-  Heading, 
-  Button, 
-  useTheme, 
-  Text 
+  Authenticator, // Provides authentication UI
+  ThemeProvider, // Allows application of custom themes
+  View, // A layout component for structuring content
+  Heading, // For rendering headings
+  Button, // For rendering buttons
+  useTheme, // Hook to access the current theme
+  Text // For rendering text
 } from '@aws-amplify/ui-react';
-
-// Import Amplify for AWS configuration
-import { Amplify } from 'aws-amplify';
 
 // Import Amplify UI styles
 import '@aws-amplify/ui-react/styles.css';
@@ -37,17 +37,6 @@ import StockQuote from "./components/StockQuote";
 
 // Import custom Amplify theme (simplified version)
 import theme from './AmplifyTheme';
-
-// Configure Amplify with AWS Cognito credentials
-Amplify.configure({
-  Auth: {
-    Cognito: {
-      // Use environment variables for secure configuration management
-      userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
-      userPoolClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
-    }
-  }
-});
 
 /**
  * Custom components for Amplify Authenticator
@@ -148,3 +137,22 @@ const App: React.FC = () => {
 
 // Export the App component as the default export
 export default App;
+
+/**
+ * @typedef {Object} AuthenticatorProps
+ * @property {boolean} hideSignUp - Whether to hide the sign-up option
+ * @property {Object} components - Custom components for the Authenticator
+ * @property {string} className - CSS classes for styling the Authenticator
+ */
+
+/**
+ * @typedef {Object} AuthenticatorRenderProps
+ * @property {Function} signOut - Function to sign out the user
+ * @property {Object} user - Current authenticated user object
+ */
+
+/**
+ * @typedef {Object} Theme
+ * @property {Object} tokens - Theme tokens for consistent styling
+ * @property {Object} tokens.space - Spacing tokens
+ */
