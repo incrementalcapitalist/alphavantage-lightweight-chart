@@ -1,34 +1,57 @@
 /**
  * @file App.tsx
- * @version 3.6.3
+ * @version 3.7.0
  * @description Main application component with enhanced UI, custom Amplify Authenticator, and updated styling
  * to match the StockQuote component and ensure consistency across the app. Includes improvements to layout
- * and styling of the authentication dialog.
+ * and styling of the authentication dialog, and implements the simplified AmplifyTheme.
  */
 
-// Import necessary dependencies
-import React from "react"; // Import React for JSX support
-import { Authenticator, ThemeProvider, View, Heading, Button, useTheme, Text } from '@aws-amplify/ui-react'; // Import Amplify UI components
-import { Amplify } from 'aws-amplify'; // Import Amplify for configuration
-import '@aws-amplify/ui-react/styles.css'; // Import Amplify UI styles
-import '@fontsource/pt-sans-narrow'; // Import PT Sans Narrow font
-import logoImage from "../public/logo512.png"; // Import logo image
-import StockQuote from "./components/StockQuote"; // Import StockQuote component
-import theme from './AmplifyTheme'; // Import custom Amplify theme
+// Import React for JSX support and type checking
+import React from "react";
 
-// Amplify configuration
+// Import necessary components and hooks from Amplify UI React library
+import { 
+  Authenticator, 
+  ThemeProvider, 
+  View, 
+  Heading, 
+  Button, 
+  useTheme, 
+  Text 
+} from '@aws-amplify/ui-react';
+
+// Import Amplify for AWS configuration
+import { Amplify } from 'aws-amplify';
+
+// Import Amplify UI styles
+import '@aws-amplify/ui-react/styles.css';
+
+// Import PT Sans Narrow font for custom typography
+import '@fontsource/pt-sans-narrow';
+
+// Import logo image for branding
+import logoImage from "../public/logo512.png";
+
+// Import StockQuote component (main functionality of the app)
+import StockQuote from "./components/StockQuote";
+
+// Import custom Amplify theme (simplified version)
+import theme from './AmplifyTheme';
+
+// Configure Amplify with AWS Cognito credentials
 Amplify.configure({
   Auth: {
     Cognito: {
-      // Use environment variables for Cognito configuration
-      userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID, // User Pool ID from environment variable
-      userPoolClientId: import.meta.env.VITE_COGNITO_CLIENT_ID, // User Pool Client ID from environment variable
+      // Use environment variables for secure configuration management
+      userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID,
+      userPoolClientId: import.meta.env.VITE_COGNITO_CLIENT_ID,
     }
   }
 });
 
 /**
  * Custom components for Amplify Authenticator
+ * @type {Object}
  */
 const components = {
   /**
@@ -36,32 +59,30 @@ const components = {
    * @returns {JSX.Element} Rendered Header component
    */
   Header() {
-    const { tokens } = useTheme(); // Get theme tokens for consistent styling
+    // Access theme tokens for consistent styling
+    const { tokens } = useTheme();
 
     return (
-      <View textAlign="center" padding={tokens.space.medium}> {/* Use medium padding for a more compact layout */}
+      // Container for header content with center alignment and medium padding
+      <View textAlign="center" padding={tokens.space.medium}>
         {/* App logo */}
         <img
           src={logoImage}
           alt="App Logo"
-          className="h-16 w-16 mx-auto mb-2"
+          className="h-16 w-16 mx-auto mb-2" // Tailwind classes for sizing and spacing
         />
-        {/* Style logo with Tailwind classes, reduced bottom margin */}
         {/* App title */}
         <Heading
           level={3}
-          className="text-2xl font-bold text-purple-200 mb-1" 
-          style={{ fontFamily: '"PT Sans Narrow", sans-serif' }} 
-        > {/* Reduced font size and added bottom margin */}
+          className="text-2xl font-bold text-purple-200 mb-1" // Tailwind classes for text styling
+          style={{ fontFamily: '"PT Sans Narrow", sans-serif' }} // Custom font application
+        >
           Essential Technical Analysis
-        </Heading> {/* Apply custom font */}
+        </Heading>
         {/* Subtitle with highlighted styling */}
-        <Text
-          className="text-sm font-medium" 
-          style={{ color: theme.tokens.colors.brand.secondary['80'].value }} 
-        > {/* Smaller font size for subtitle */}
+        <Text className="text-sm font-medium text-orange-500">
           Powered by AlphaVantage & Lightweight Charts
-        </Text> {/* Use orange color from theme */}
+        </Text>
       </View>
     );
   },
@@ -71,14 +92,14 @@ const components = {
    * @returns {JSX.Element} Rendered Footer component
    */
   Footer() {
-    const { tokens } = useTheme(); // Get theme tokens for consistent styling
+    // Access theme tokens for consistent styling
+    const { tokens } = useTheme();
 
     return (
-      <View textAlign="center" padding={tokens.space.small}> {/* Use small padding for a more compact footer */}
+      // Container for footer content with center alignment and small padding
+      <View textAlign="center" padding={tokens.space.small}>
         {/* Copyright notice */}
-        <Text
-          className="text-xs text-gray-400" 
-        > {/* Smaller font size and lighter color for copyright text */}
+        <Text className="text-xs text-gray-400"> {/* Tailwind classes for text styling */}
           &copy; 2024 Incremental Capital LLC
         </Text>
       </View>
@@ -89,28 +110,20 @@ const components = {
 /**
  * Main application component
  * @returns {JSX.Element} The rendered App component
- * 
- * Authentication Flow:
- * 1. The Amplify Authenticator wraps the entire application.
- * 2. It handles sign-up, sign-in, and sign-out processes.
- * 3. Only authenticated users can access the StockQuote component.
- * 4. The custom Header component provides branding and improves UX.
- * 5. The Footer component displays copyright information.
- * 6. After authentication, users can access the main functionality and sign out.
  */
 const App: React.FC = () => {
   return (
-    // Wrap the entire application with ThemeProvider to apply our custom theme
+    // Apply custom theme to entire application
     <ThemeProvider theme={theme}>
-      {/* Create a full-height container with dark background and centered content */}
+      {/* Full-height container with dark background and centered content */}
       <View className="min-h-screen bg-gray-800 flex items-center justify-center p-4">
-        {/* Limit the width of the content for better readability on larger screens */}
-        <View className="w-full max-w-lg"> {/* max-w-lg ensures the content doesn't overflow the container */}
+        {/* Limit content width for better readability */}
+        <View className="w-full max-w-lg">
           {/* Amplify Authenticator component with custom styling */}
           <Authenticator
             hideSignUp={false} // Allow users to sign up
-            components={components} // Use custom components defined above
-            className="bg-gray-800 shadow-xl rounded-lg overflow-hidden" // Style Authenticator with Tailwind classes
+            components={components} // Use custom header and footer components
+            className="bg-gray-800 shadow-xl rounded-lg overflow-hidden" // Tailwind classes for styling
           >
             {({ signOut, user }) => (
               // Container for authenticated content
@@ -119,8 +132,8 @@ const App: React.FC = () => {
                 <StockQuote />
                 {/* Sign out button */}
                 <Button
-                  onClick={signOut} // Call signOut function when clicked
-                  className="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-150 ease-in-out" // Style button with Tailwind classes
+                  onClick={signOut} // Trigger sign out action
+                  className="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-150 ease-in-out" // Tailwind classes for button styling
                 >
                   Sign Out
                 </Button>
