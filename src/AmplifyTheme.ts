@@ -1,10 +1,9 @@
 /**
  * @file AmplifyTheme.ts
- * @version 1.1.0
- * @description Custom theme for AWS Amplify UI components, updated to match the new color scheme
- * 
+ * @version 1.2.0
+ * @description Custom theme for AWS Amplify UI components, updated with new colors and styles * 
  * This file defines a custom theme for Amplify UI components to match the overall
- * design of the Basic Technical Analysis application. It overrides default styles
+ * design of the Essential Technical Analysis application. It overrides default styles
  * to ensure consistency with the app's color scheme and typography.
  */
 
@@ -33,7 +32,13 @@ const theme = createTheme({
           80: { value: '#A855F7' },  // Medium purple
           90: { value: '#9333EA' },  // Dark purple
           100: { value: '#7E22CE' }, // Very dark purple
-        }
+        },
+        secondary: {
+          80: { value: '#F97316' },  // Orange (secondary color)
+        },
+        tertiary: {
+          80: { value: '#1F2937' },  // Charcoal (tertiary color)
+        },
       },
     },
     components: {
@@ -84,7 +89,6 @@ const theme = createTheme({
           },
         },
       },
-      // Add styles for other components as needed
     },
   },
 });

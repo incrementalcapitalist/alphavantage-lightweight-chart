@@ -1,13 +1,14 @@
 /**
  * @file App.tsx
- * @version 3.6.1
+ * @version 3.6.3
  * @description Main application component with enhanced UI, custom Amplify Authenticator, and updated styling
- * to match the StockQuote component and ensure consistency across the app.
+ * to match the StockQuote component and ensure consistency across the app. Includes improvements to layout
+ * and styling of the authentication dialog.
  */
 
 // Import necessary dependencies
 import React from "react"; // Import React for JSX support
-import { Authenticator, ThemeProvider, View, Heading, Button, useTheme } from '@aws-amplify/ui-react'; // Import Amplify UI components
+import { Authenticator, ThemeProvider, View, Heading, Button, useTheme, Text } from '@aws-amplify/ui-react'; // Import Amplify UI components
 import { Amplify } from 'aws-amplify'; // Import Amplify for configuration
 import '@aws-amplify/ui-react/styles.css'; // Import Amplify UI styles
 import '@fontsource/pt-sans-narrow'; // Import PT Sans Narrow font
@@ -38,22 +39,29 @@ const components = {
     const { tokens } = useTheme(); // Get theme tokens for consistent styling
 
     return (
-      <View textAlign="center" padding={tokens.space.large}>
+      <View textAlign="center" padding={tokens.space.medium}> {/* Use medium padding for a more compact layout */}
         {/* App logo */}
         <img
           src={logoImage}
           alt="App Logo"
-          className="h-16 w-16 mx-auto mb-4" // Style logo with Tailwind classes
+          className="h-16 w-16 mx-auto mb-2"
         />
+        {/* Style logo with Tailwind classes, reduced bottom margin */}
         {/* App title */}
         <Heading
           level={3}
-          className="text-3xl font-bold text-purple-200" // Style heading with Tailwind classes
-          style={{ fontFamily: '"PT Sans Narrow", sans-serif' }} // Apply custom font
-        >
+          className="text-2xl font-bold text-purple-200 mb-1" 
+          style={{ fontFamily: '"PT Sans Narrow", sans-serif' }} 
+        > {/* Reduced font size and added bottom margin */}
           Essential Technical Analysis
-        </Heading>
-        <p>Powered by AlphaVantage & Lightweight Charts</p>
+        </Heading> {/* Apply custom font */}
+        {/* Subtitle with highlighted styling */}
+        <Text
+          className="text-sm font-medium" 
+          style={{ color: theme.tokens.colors.brand.secondary['80'].value }} 
+        > {/* Smaller font size for subtitle */}
+          Powered by AlphaVantage & Lightweight Charts
+        </Text> {/* Use orange color from theme */}
       </View>
     );
   },
@@ -66,17 +74,13 @@ const components = {
     const { tokens } = useTheme(); // Get theme tokens for consistent styling
 
     return (
-      <View textAlign="center" padding={tokens.space.large}>
+      <View textAlign="center" padding={tokens.space.small}> {/* Use small padding for a more compact footer */}
         {/* Copyright notice */}
-        <Button
-          fontWeight="normal"
-          onClick={() => {}} // Empty onClick handler
-          size="small"
-          variation="link"
-          className="text-purple-300 hover:text-purple-200" // Style button with Tailwind classes
-        >
+        <Text
+          className="text-xs text-gray-400" 
+        > {/* Smaller font size and lighter color for copyright text */}
           &copy; 2024 Incremental Capital LLC
-        </Button>
+        </Text>
       </View>
     );
   },
@@ -85,7 +89,7 @@ const components = {
 /**
  * Main application component
  * @returns {JSX.Element} The rendered App component
- *  * 
+ * 
  * Authentication Flow:
  * 1. The Amplify Authenticator wraps the entire application.
  * 2. It handles sign-up, sign-in, and sign-out processes.
@@ -99,14 +103,14 @@ const App: React.FC = () => {
     // Wrap the entire application with ThemeProvider to apply our custom theme
     <ThemeProvider theme={theme}>
       {/* Create a full-height container with dark background and centered content */}
-      <View className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <View className="min-h-screen bg-gray-800 flex items-center justify-center p-4">
         {/* Limit the width of the content for better readability on larger screens */}
-        <View className="w-full max-w-md">
+        <View className="w-full max-w-lg"> {/* max-w-lg ensures the content doesn't overflow the container */}
           {/* Amplify Authenticator component with custom styling */}
           <Authenticator
             hideSignUp={false} // Allow users to sign up
             components={components} // Use custom components defined above
-            className="bg-gray-800 shadow-lg rounded-lg overflow-hidden" // Style Authenticator with Tailwind classes
+            className="bg-gray-800 shadow-xl rounded-lg overflow-hidden" // Style Authenticator with Tailwind classes
           >
             {({ signOut, user }) => (
               // Container for authenticated content
