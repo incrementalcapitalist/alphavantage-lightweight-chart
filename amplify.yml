@@ -1,0 +1,62 @@
+# This is the build specification file for AWS Amplify Hosting.
+# It defines how to build and deploy your frontend application.
+
+version: 1
+# The version key is required and should be set to 1.
+# It defines the version of the Amplify build spec syntax we're using.
+
+frontend:
+  # The frontend section contains all the instructions for building your frontend app.
+  
+  phases:
+    # Phases define the different stages of your build process.
+    
+    preBuild:
+      # The preBuild phase runs before the main build command.
+      # It's typically used for installing dependencies and setting up the environment.
+      commands:
+        - echo "Installing dependencies..."
+        - npm ci
+        # npm ci is preferred over npm install for CI environments as it's more deterministic.
+    
+    build:
+      # The build phase is where your main build command runs.
+      commands:
+        - echo "Building the application..."
+        - npm run build
+        # This assumes you have a "build" script defined in your package.json
+        # Adjust this command if your build script has a different name.
+    
+    postBuild:
+      # The postBuild phase runs after the build is complete.
+      # You can use this for tasks like running tests or preparing artifacts.
+      commands:
+        - echo "Build completed on `date`"
+        # This is just an example. Add any post-build steps you need here.
+
+  artifacts:
+    # The artifacts section defines what files should be deployed.
+    
+    baseDirectory: dist
+    # This should be the directory where your build output is located.
+    # For a Vite project, this is typically 'dist'.
+    
+    files:
+      - '**/*'
+      # This pattern means "include all files and directories".
+      # You can be more specific if you need to exclude certain files.
+
+  cache:
+    # The cache section allows you to specify paths to be cached between builds.
+    # This can significantly speed up subsequent builds.
+    paths:
+      - node_modules/**/*
+      # Caching node_modules can speed up installations in future builds.
+
+# Environment variables can be set in the Amplify Console and accessed during the build.
+# Do not put sensitive information directly in this file.
+# Example of how to use an environment variable:
+# - echo "API Key: $API_KEY"
+
+# Note: Make sure any environment variables you need (like VITE_ALPHA_VANTAGE_API_KEY)
+# are properly set in the Amplify Console's environment variables section.
