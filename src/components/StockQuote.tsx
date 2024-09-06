@@ -87,7 +87,6 @@ interface HeikinAshiDataPoint {
   close: number; // Closing price
 }
 
-
 /**
  * StockQuote Component
  * @returns {JSX.Element} The rendered StockQuote component
