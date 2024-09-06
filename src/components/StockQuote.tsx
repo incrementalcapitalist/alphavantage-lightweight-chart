@@ -1,8 +1,8 @@
 /**
  * @file StockQuote.tsx
- * @version 3.1.0
+ * @version 3.2.0
  * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart,
- * integrated with AWS Amplify v6, AWS Lambda, and API Gateway.
+ * integrated with AWS Amplify v6, AWS Lambda, and API Gateway. Styled to match the provided design.
  * 
  * Heikin-Ashi Calculation:
  * Heikin-Ashi candlesticks are a variation of traditional candlesticks, designed to filter out market noise
@@ -17,11 +17,11 @@
  */
 
 // Import necessary dependencies
-import React, { useState, useEffect, useRef } from "react"; // React and its hooks for component logic
-import { createChart, IChartApi, ISeriesApi } from "lightweight-charts"; // Library for creating financial charts
-import { fetchAuthSession } from 'aws-amplify/auth'; // Amplify v6 auth session fetching
-import { get, isCancelError } from 'aws-amplify/api'; // Amplify v6 API for making GET requests
-import { Amplify } from 'aws-amplify'; // Amplify core for configuration
+import React, { useState, useEffect, useRef } from "react";
+import { createChart, IChartApi, ISeriesApi } from "lightweight-charts";
+import { fetchAuthSession } from 'aws-amplify/auth';
+import { get, isCancelError } from 'aws-amplify/api';
+import { Amplify } from 'aws-amplify';
 
 // Global type declarations
 declare global {
@@ -307,12 +307,12 @@ const StockQuote: React.FC = () => {
       if (!heikinAshiSeriesRef.current) {
         // Add the Heikin-Ashi candlestick series if it doesn't exist
         heikinAshiSeriesRef.current = chartRef.current.addCandlestickSeries({
-          upColor: '#8B5CF6', // Purple for up days
-          downColor: '#f97316', // Orange for down days
-          borderUpColor: '#8B5CF6',
-          borderDownColor: '#f97316',
-          wickUpColor: '#8B5CF6',
-          wickDownColor: '#f97316',
+          upColor: '#A855F7', // Purple for up days
+          downColor: '#F97316', // Orange for down days
+          borderUpColor: '#A855F7',
+          borderDownColor: '#F97316',
+          wickUpColor: '#A855F7',
+          wickDownColor: '#F97316',
         });
       }
 
@@ -344,8 +344,11 @@ const StockQuote: React.FC = () => {
   // Render the component
   return (
     <div className="bg-gray-900 text-purple-300 shadow-lg rounded-lg p-8 font-['PT_Sans_Narrow']">
-      <h2 className="text-3xl font-bold mb-6 text-purple-200 border-b border-purple-700 pb-2 text-center">
-        BASIC PRICE ANALYSIS
+      <h1 className="text-4xl font-bold mb-8 text-center text-purple-200 uppercase">
+        Essential Technical Analysis
+      </h1>
+      <h2 className="text-2xl font-semibold mb-6 text-center text-purple-300 uppercase">
+        Price Pattern
       </h2>
       <div className="mb-6">
         <input
@@ -359,12 +362,12 @@ const StockQuote: React.FC = () => {
         />
       </div>
       <button
-        onClick={fetchStockData} // Trigger fetchStockData when button is clicked
+        onClick={fetchStockData}  // Trigger fetchStockData when button is clicked
         disabled={loading} // Disable button when loading
         className="w-full bg-purple-600 text-white p-3 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50 text-lg font-semibold"
         aria-busy={loading}
       >
-        {loading ? "FETCHING DATA..." : "FETCH QUOTE"}
+        {loading ? "FETCHING DATA..." : "Lightweight Chart"}
       </button>
       {error && (
         <p className="mt-4 text-red-400 bg-red-900 p-3 rounded-md" role="alert">
