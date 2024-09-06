@@ -1,8 +1,8 @@
 /**
  * @file StockQuote.tsx
- * @version 2.0.0
+ * @version 3.0.0
  * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart,
- * now integrated with AWS Lambda and API Gateway.
+ * now integrated with AWS Amplify v6, AWS Lambda, and API Gateway.
  * 
  * Heikin-Ashi Calculation:
  * Heikin-Ashi candlesticks are a variation of traditional candlesticks, designed to filter out market noise
@@ -17,28 +17,38 @@
  */
 
 // Import necessary dependencies
-import React, { useState, useEffect, useRef } from "react";
-import { createChart, IChartApi, ISeriesApi } from "lightweight-charts";
-import { API } from 'aws-amplify';
+import React, { useState, useEffect, useRef } from "react"; // React and its hooks for component logic
+import { createChart, IChartApi, ISeriesApi } from "lightweight-charts"; // Library for creating financial charts
+import { fetchAuthSession } from 'aws-amplify/auth'; // Amplify v6 auth session fetching
+import { get } from 'aws-amplify/api'; // Amplify v6 API for making GET requests
 
 // Global type declarations
 declare global {
   interface Window {
-    URL: typeof URL;
-    URLSearchParams: typeof URLSearchParams;
+    URL: typeof URL; // Ensure URL is available on the global Window object
+    URLSearchParams: typeof URLSearchParams; // Ensure URLSearchParams is available on the global Window object
   }
 }
 
 // Type definitions
+/**
+ * Represents an API error
+ */
 type APIError = {
-  message: string;
-  code?: string;
+  message: string; // Error message
+  code?: string; // Optional error code
 };
 
+/**
+ * Represents stock data with string key-value pairs
+ */
 interface StockData {
   [key: string]: string;
 }
 
+/**
+ * Represents the structure of the Alpha Vantage API response
+ */
 interface AlphaVantageResponse {
   'Meta Data': {
     '1. Information': string;
@@ -64,12 +74,15 @@ interface AlphaVantageResponse {
   };
 }
 
+/**
+ * Represents a single data point for Heikin-Ashi chart
+ */
 interface HeikinAshiDataPoint {
-  time: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
+  time: string; // Date/time of the data point
+  open: number; // Opening price
+  high: number; // Highest price
+  low: number; // Lowest price
+  close: number; // Closing price
 }
 
 /**
@@ -95,40 +108,46 @@ const StockQuote: React.FC = () => {
   const fetchStockData = async () => {
     // Input validation
     if (!symbol.trim()) {
-      setError({ message: "Please enter a stock symbol" });
+      setError({ message: "Please enter a stock symbol" }); // Set error if symbol is empty
       return;
     }
 
     // Reset states
-    setLoading(true);
-    setError(null);
-    setStockData(null);
+    setLoading(true); // Set loading state to true
+    setError(null); // Clear any previous errors
+    setStockData(null); // Clear any previous stock data
 
     try {
-      // Fetch data using AWS API Gateway
-      const response = await API.get('StockQuoteAPI', '/globalquote', {
-        queryStringParameters: {
-          symbol: symbol
+      // Ensure we have a valid auth session before making the API call
+      await fetchAuthSession();
+
+      // Fetch data using AWS API Gateway through Amplify v6 API
+      const response = await get({
+        apiName: 'StockQuoteAPI',
+        path: '/globalquote',
+        options: {
+          queryParams: {
+            symbol: symbol // Pass the stock symbol as a query parameter
+          }
         }
       });
 
-      console.log("Global Quote Response:", response);
+      console.log("Global Quote Response:", response); // Log the response for debugging
 
       // Error handling
-      if (response.error) {
-        throw new Error(response.error);
+      if ('error' in response) {
+        throw new Error(response.error as string);
       }
 
-      // Parse and set the stock data
-      const parsedData = JSON.parse(response.body);
-      setStockData(parsedData);
+      // Set the stock data
+      setStockData(response.body as StockData);
 
       // Fetch historical data for the chart
       await fetchHistoricalData(symbol);
     } catch (err) {
-      handleError(err);
+      handleError(err); // Handle any errors that occur during the fetch
     } finally {
-      setLoading(false);
+      setLoading(false); // Set loading state to false when fetch is complete
     }
   };
 
@@ -138,17 +157,20 @@ const StockQuote: React.FC = () => {
    */
   const fetchHistoricalData = async (symbol: string): Promise<void> => {
     try {
-      // Note: This function still uses the direct AlphaVantage API call.
-      // In a production environment, you might want to create another Lambda function for this.
-      const apiUrl = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${symbol}&apikey=${import.meta.env.VITE_ALPHA_VANTAGE_API_KEY}`;
+      // Fetch historical data using Amplify v6 API
+      const response = await get({
+        apiName: 'StockQuoteAPI',
+        path: '/historical',
+        options: {
+          queryParams: {
+            symbol: symbol // Pass the stock symbol as a query parameter
+          }
+        }
+      });
 
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      const data: AlphaVantageResponse = response.body as AlphaVantageResponse;
 
-      const data: AlphaVantageResponse = await response.json();
-
+      // Check for error message in the response
       if ('Error Message' in data) {
         throw new Error(data['Error Message'] as string);
       }
@@ -158,8 +180,9 @@ const StockQuote: React.FC = () => {
         throw new Error('No time series data found');
       }
 
+      // Calculate Heikin-Ashi data from the time series
       const heikinAshiData: HeikinAshiDataPoint[] = calculateHeikinAshi(timeSeries);
-      setHeikinAshiData(heikinAshiData);
+      setHeikinAshiData(heikinAshiData); // Update the state with calculated Heikin-Ashi data
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Failed to fetch historical data: ${error.message}`);
@@ -178,21 +201,24 @@ const StockQuote: React.FC = () => {
     let prevHA: HeikinAshiDataPoint | null = null;
 
     Object.entries(timeSeries).forEach(([date, values], index) => {
-      const open = parseFloat(values['1. open']);
-      const high = parseFloat(values['2. high']);
-      const low = parseFloat(values['3. low']);
-      const close = parseFloat(values['4. close']);
+      const open = parseFloat(values['1. open']); // Parse open price
+      const high = parseFloat(values['2. high']); // Parse high price
+      const low = parseFloat(values['3. low']); // Parse low price
+      const close = parseFloat(values['4. close']); // Parse close price
 
       let haOpen, haClose, haHigh, haLow;
 
       if (index === 0) {
+        // For the first candle, use regular values
         haOpen = open;
         haClose = close;
       } else {
+        // Calculate Heikin-Ashi values
         haOpen = (prevHA!.open + prevHA!.close) / 2;
         haClose = (open + high + low + close) / 4;
       }
 
+      // Calculate Heikin-Ashi high and low
       haHigh = Math.max(high, haOpen, haClose);
       haLow = Math.min(low, haOpen, haClose);
 
@@ -204,11 +230,11 @@ const StockQuote: React.FC = () => {
         close: haClose
       };
 
-      heikinAshiData.push(haCandle);
-      prevHA = haCandle;
+      heikinAshiData.push(haCandle); // Add the calculated Heikin-Ashi candle to the array
+      prevHA = haCandle; // Store the current candle as previous for the next iteration
     });
 
-    return heikinAshiData.reverse();
+    return heikinAshiData.reverse(); // Reverse the array to get chronological order
   };
 
   /**
@@ -217,11 +243,11 @@ const StockQuote: React.FC = () => {
    */
   const handleError = (err: unknown) => {
     if (err instanceof Error) {
-      setError({ message: err.message });
+      setError({ message: err.message }); // Set error message if it's an Error instance
     } else if (typeof err === "string") {
-      setError({ message: err });
+      setError({ message: err }); // Set error message if it's a string
     } else {
-      setError({ message: "An unknown error occurred" });
+      setError({ message: "An unknown error occurred" }); // Set a generic error message for unknown error types
     }
   };
 
@@ -266,7 +292,7 @@ const StockQuote: React.FC = () => {
       heikinAshiSeriesRef.current.setData(heikinAshiData);
       chartRef.current.timeScale().fitContent();
     }
-  }, [heikinAshiData]);
+  }, [heikinAshiData]); // This effect runs whenever heikinAshiData changes
 
   /**
    * Handles key press events in the input field
@@ -274,7 +300,7 @@ const StockQuote: React.FC = () => {
    */
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      fetchStockData();
+      fetchStockData(); // Trigger fetchStockData when Enter key is pressed
     }
   };
 
@@ -297,16 +323,16 @@ const StockQuote: React.FC = () => {
         <input
           type="text"
           value={symbol}
-          onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-          onKeyPress={handleKeyPress}
+          onChange={(e) => setSymbol(e.target.value.toUpperCase())} // Update symbol state, converting to uppercase
+          onKeyPress={handleKeyPress} // Handle key press events
           placeholder="Enter stock symbol (e.g., AAPL)"
           className="w-full p-3 bg-gray-800 border border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-400 text-lg text-center"
           aria-label="Stock Symbol"
         />
       </div>
       <button
-        onClick={fetchStockData}
-        disabled={loading}
+        onClick={fetchStockData} // Trigger fetchStockData when button is clicked
+        disabled={loading} // Disable button when loading
         className="w-full bg-purple-600 text-white p-3 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-200 ease-in-out disabled:opacity-50 text-lg font-semibold"
         aria-busy={loading}
       >
@@ -337,10 +363,10 @@ const StockQuote: React.FC = () => {
               {Object.entries(stockData).map(([key, value]) => (
                 <tr key={key} className="hover:bg-gray-800 transition-colors duration-150">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-200">
-                    {formatKey(key)}
+                    {formatKey(key)} {/* Display formatted key */}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-purple-300">
-                    {value}
+                    {value} {/* Display corresponding value */}
                   </td>
                 </tr>
               ))}
@@ -352,4 +378,4 @@ const StockQuote: React.FC = () => {
   );
 };
 
-export default StockQuote;
+export default StockQuote; // Export the StockQuote component as the default export
