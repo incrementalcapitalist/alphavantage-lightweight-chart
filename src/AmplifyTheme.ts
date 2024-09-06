@@ -1,10 +1,49 @@
 /**
  * @file AmplifyTheme.ts
- * @version 1.2.1
+ * @version 1.2.2
  * @description Custom theme for AWS Amplify UI components using createTheme
-* This file defines a custom theme for Amplify UI components to match the overall
+ * 
+ * This file defines a custom theme for Amplify UI components to match the overall
  * design of the Essential Technical Analysis application. It overrides default styles
  * to ensure consistency with the app's color scheme and typography.
+ * 
+ * The theme is created using the createTheme function from AWS Amplify UI React library.
+ * It defines custom colors, component styles, and other design tokens that are used
+ * throughout the application to maintain a cohesive look and feel.
+ * 
+ * Key Features:
+ * - Custom color palette with primary, secondary, and tertiary colors
+ * - Consistent styling for Amplify UI components (buttons, inputs, tabs, etc.)
+ * - Dark mode optimized design
+ * - Typography and spacing adjustments
+ * 
+ * Usage:
+ * Import this theme in your main App component and wrap your application with
+ * the ThemeProvider component from Amplify UI React, passing this theme as a prop.
+ * 
+ * Example:
+ * ```
+ * import theme from './AmplifyTheme';
+ * import { ThemeProvider } from '@aws-amplify/ui-react';
+ * 
+ * function App() {
+ *   return (
+ *     <ThemeProvider theme={theme}>
+ *       <StockQuote>
+ *     </ThemeProvider>
+ *   );
+ * }
+ * ```
+ * 
+ * Customization:
+ * To modify the theme, adjust the values in the `tokens` object. You can add new
+ * color variants, change existing colors, or modify component-specific styles.
+ * 
+ * @see https://ui.docs.amplify.aws/react/theming for more information on Amplify UI theming
+ * 
+ * @author Incremental Capitalist
+ * @copyright 2024 Incremental Capital LLC
+ * @license GNU GENERAL PUBLIC LICENSE V3
  */
 
 // Import the createTheme function from AWS Amplify UI React library
