@@ -1,13 +1,13 @@
 {
-  "name": "alphavantage-lightweight-chart",
+  "name": "essential-technical-analysis",
   "private": true,
   "version": "1.0.0",
-  "description": "A basic React/Typescript/Vite application for fetching stock quotes from AlphaVantage and displaying historical data with the TradingView Lightweight Chart library.",
+  "description": "A most essential React/Typescript/Vite application for AI-enhanced technical analysis powered by AlphaVantage and the TradingView Lightweight Chart library.",
   "author": "Incremental Capitalist",
   "license": "LGPL-3.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/incrementalcapitalist/alphavantage-lightweight-chart.git"
+    "url": "https://github.com/incrementalcapitalist/essential-technical-analysis.git"
   },
   "type": "module",
   "scripts": {

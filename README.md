@@ -1,4 +1,4 @@
-# Basic Technical Analysis
+# Essential Technical Analysis
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) 
 
@@ -21,7 +21,7 @@
 
 ## Overview
 
-This app is designed for trend and momentum traders. It uses Heikin-Ashi candles to help spot trends. Eventually, Basic Technical Analysis will be an AI-enhanced tool designed to reduce unforced errors in analyzing securities. Presently, it allows users to easily fetch and display real-time stock quotes using the Alpha Vantage API, with added features for historical data visualization and secure authentication.
+This app is designed for trend and momentum traders. It uses Heikin-Ashi candles to help spot trends. Eventually, Essential Technical Analysis will be an AI-enhanced tool designed to reduce unforced errors in analyzing securities. Presently, it allows users to easily fetch and display real-time stock quotes using the Alpha Vantage API, with added features for historical data visualization and secure authentication.
 
 ## Features
 
@@ -60,8 +60,8 @@ This app is designed for trend and momentum traders. It uses Heikin-Ashi candles
 
 1. Clone the repository:
 ```bash
-git clone git@github.com:incrementalcapitalist/alphavantage-lightweight-chart.git
-cd alphavantage-lightweight-chart
+git clone git@github.com:incrementalcapitalist/essential-technical-analysis.git
+cd essential-technical-analysis
 ```
 
 2. Install dependencies:
@@ -102,7 +102,7 @@ npm run build
 ## Project Structure
 
 ```
-alphavantage-lightweight-chart/
+essential-technical-analysis/
 │
 ├── src/
 │   ├── components/
