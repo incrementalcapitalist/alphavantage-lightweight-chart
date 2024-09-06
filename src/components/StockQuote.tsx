@@ -1,8 +1,8 @@
 /**
  * @file StockQuote.tsx
- * @version 3.0.0
+ * @version 3.1.0
  * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart,
- * now integrated with AWS Amplify v6, AWS Lambda, and API Gateway.
+ * integrated with AWS Amplify v6, AWS Lambda, and API Gateway.
  * 
  * Heikin-Ashi Calculation:
  * Heikin-Ashi candlesticks are a variation of traditional candlesticks, designed to filter out market noise
@@ -20,7 +20,8 @@
 import React, { useState, useEffect, useRef } from "react"; // React and its hooks for component logic
 import { createChart, IChartApi, ISeriesApi } from "lightweight-charts"; // Library for creating financial charts
 import { fetchAuthSession } from 'aws-amplify/auth'; // Amplify v6 auth session fetching
-import { get, GetOperationOutput } from 'aws-amplify/api'; // Amplify v6 API for making GET requests
+import { get, isCancelError } from 'aws-amplify/api'; // Amplify v6 API for making GET requests
+import { Amplify } from 'aws-amplify'; // Amplify core for configuration
 
 // Global type declarations
 declare global {
@@ -31,6 +32,7 @@ declare global {
 }
 
 // Type definitions
+
 /**
  * Represents an API error
  */
@@ -85,6 +87,7 @@ interface HeikinAshiDataPoint {
   close: number; // Closing price
 }
 
+
 /**
  * StockQuote Component
  * @returns {JSX.Element} The rendered StockQuote component
@@ -122,25 +125,29 @@ const StockQuote: React.FC = () => {
       await fetchAuthSession();
 
       // Fetch data using AWS API Gateway through Amplify v6 API
-      const response: GetOperationOutput = await get({
-        apiName: 'StockQuoteAPI',
-        path: '/globalquote',
+      const { body } = await get({
+        apiName: 'StockQuoteAPI', // Name of the API configured in Amplify
+        path: '/globalquote', // Path for the global quote endpoint
         options: {
           queryParams: {
             symbol: symbol // Pass the stock symbol as a query parameter
           }
         }
-      });
+      }).response; // Access the response property of the returned object
 
-      console.log("Global Quote Response:", response); // Log the response for debugging
+      // Parse the response body as JSON
+      const globalQuoteResponse = await body.json();
+
+      console.log("Global Quote Response:", globalQuoteResponse); // Log the response for debugging
 
       // Error handling
-      if ('error' in response) {
-        throw new Error(JSON.stringify(response.error));
+      if ('error' in isCancelError) {
+        // If the response contains an error property, throw an error
+        throw new Error(JSON.stringify(isCancelError));
       }
 
-      // Set the stock data
-      setStockData(JSON.parse(response.body) as StockData);
+      // Set the stock data, accessing the 'Global Quote' property of the response
+      setStockData(globalQuoteResponse as StockData);
 
       // Fetch historical data for the chart
       await fetchHistoricalData(symbol);
@@ -158,17 +165,25 @@ const StockQuote: React.FC = () => {
   const fetchHistoricalData = async (symbol: string): Promise<void> => {
     try {
       // Fetch historical data using Amplify v6 API
-      const response: GetOperationOutput = await get({
-        apiName: 'StockQuoteAPI',
-        path: '/historical',
+      const { body } = await get({
+        apiName: 'StockQuoteAPI', // Name of the API configured in Amplify
+        path: '/historical', // Path for the historical data endpoint
         options: {
           queryParams: {
             symbol: symbol // Pass the stock symbol as a query parameter
           }
         }
-      });
+      }).response; // Access the response property of the returned object
 
-      const data: AlphaVantageResponse = JSON.parse(response.body) as AlphaVantageResponse;
+      // Parse the response body as JSON
+      const jsonData = await body.json();
+      
+      // Type guard to check if jsonData is AlphaVantageResponse
+      if (!isAlphaVantageResponse(jsonData)) {
+        throw new Error('Invalid response format');
+      }
+
+      const data: AlphaVantageResponse = jsonData;
 
       // Check for error message in the response
       if ('Error Message' in data) {
@@ -190,6 +205,20 @@ const StockQuote: React.FC = () => {
       throw new Error('An unknown error occurred while fetching historical data');
     }
   };
+
+  /**
+   * Type guard function to check if the data is AlphaVantageResponse
+   * @param {any} data - The data to check
+   * @returns {boolean} True if the data is AlphaVantageResponse, false otherwise
+   */
+  function isAlphaVantageResponse(data: any): data is AlphaVantageResponse {
+    return (
+      data &&
+      typeof data === 'object' &&
+      'Meta Data' in data &&
+      'Time Series (Daily)' in data
+    );
+  }
 
   /**
    * Calculates Heikin-Ashi candles from time series data
