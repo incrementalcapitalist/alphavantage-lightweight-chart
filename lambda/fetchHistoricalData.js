@@ -1,112 +1,166 @@
 /**
- * @file fetchHistoricalData.js
- * @version 1.0.0
- * @description AWS Lambda function to fetch historical stock data from Alpha Vantage API
+ * @file index.js
+ * @version 1.2.1
+ * @description AWS Lambda function to fetch comprehensive historical stock data from AlphaVantage API, accommodating stocks with limited history
  * @author Incremental Capitalist
  * @copyright 2024 Incremental Capital LLC
  * @license GNU GENERAL PUBLIC LICENSE V3
  */
 
-/**
- * @typedef {Object} APIGatewayProxyEvent
- * @property {Object} queryStringParameters - Query string parameters from the API Gateway event
- * @property {string} queryStringParameters.symbol - The stock symbol to fetch data for
- * @property {string} [queryStringParameters.function_type] - The Alpha Vantage function type (default: 'TIME_SERIES_DAILY')
- */
+const https = require('https');
+
+// AlphaVantage API configuration
+const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
+const ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
 
 /**
- * @typedef {Object} LambdaResponse
- * @property {number} statusCode - HTTP status code of the response
- * @property {Object} headers - HTTP headers of the response
- * @property {string} body - JSON stringified body of the response
+ * Constructs the API URL with parameters
+ * @param {string} baseUrl - The base URL of the API
+ * @param {Object} params - The parameters to be added to the URL
+ * @returns {string} The constructed URL
  */
+function constructApiUrl(baseUrl, params) {
+  const url = new URL(baseUrl);
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.append(key, value);
+  });
+  return url.toString();
+}
 
 /**
- * Lambda function handler to fetch historical stock data from Alpha Vantage
- * @async
- * @function
- * @param {APIGatewayProxyEvent} event - The API Gateway proxy event
- * @returns {Promise<LambdaResponse>} The Lambda function response
+ * Fetches data from the specified URL
+ * @param {string} url - The URL to fetch data from
+ * @returns {Promise<Object>} A promise that resolves with the fetched data
+ * @throws {Error} If there's an error fetching or parsing the data
+ */
+function fetchData(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (response) => {
+      let data = '';
+      response.on('data', (chunk) => data += chunk);
+      response.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (error) {
+          reject(new Error('Failed to parse API response'));
+        }
+      });
+    }).on('error', (error) => reject(error));
+  });
+}
+
+/**
+ * Processes the raw historical data
+ * @param {Object} data - The raw data from AlphaVantage API
+ * @returns {Array} An array of processed historical data points, sorted by date ascending
+ */
+function processHistoricalData(data) {
+  const timeSeries = data['Time Series (Daily)'];
+  return Object.entries(timeSeries)
+    .map(([date, values]) => ({
+      date,
+      open: parseFloat(values['1. open']),
+      high: parseFloat(values['2. high']),
+      low: parseFloat(values['3. low']),
+      close: parseFloat(values['4. close']),
+      volume: parseInt(values['5. volume'])
+    }))
+    .sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date ascending
+}
+
+/**
+ * Analyzes the historical data
+ * @param {Array} data - The processed historical data
+ * @returns {Object} An object containing analysis results including data points count, date range, and data completeness flags
+ */
+function analyzeHistoricalData(data) {
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+  
+  const hasFullYearData = data.length >= 252; // Approximately one year of trading days
+  const hasRecentData = new Date(data[data.length - 1].date) >= oneYearAgo;
+  
+  return {
+    dataPoints: data.length,
+    oldestDate: data[0].date,
+    newestDate: data[data.length - 1].date,
+    hasFullYearData,
+    hasRecentData
+  };
+}
+
+/**
+ * Lambda function handler
+ * @param {Object} event - The event object containing the request parameters
+ * @returns {Promise<Object>} A promise that resolves with the API response
  */
 exports.handler = async (event) => {
-    // Retrieve the Alpha Vantage API key from environment variables
-    const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
-    
-    // Extract the stock symbol from query parameters
-    const symbol = event.queryStringParameters.symbol;
-    
-    // Extract the function type from query parameters, defaulting to 'TIME_SERIES_DAILY'
-    const functionType = event.queryStringParameters.function_type || 'TIME_SERIES_DAILY';
-    
-    // Construct the URL for the Alpha Vantage API request
-    const url = `https://www.alphavantage.co/query?function=${functionType}&symbol=${symbol}&apikey=${apiKey}`;
-    
-    try {
-        // Fetch data from Alpha Vantage API
-        const response = await fetch(url);
-        
-        // Parse the JSON response
-        const data = await response.json();
-        
-        // Check if the API returned an error message
-        if (data['Error Message']) {
-            throw new Error(data['Error Message']);
-        }
-        
-        // Return a successful response with the fetched data
-        return {
-            statusCode: 200,
-            headers: {
-                "Access-Control-Allow-Origin": "*", // Allow requests from any origin
-                "Access-Control-Allow-Headers": "Content-Type", // Allow the Content-Type header
-                "Access-Control-Allow-Methods": "OPTIONS,POST,GET" // Allow OPTIONS, POST, and GET methods
-            },
-            body: JSON.stringify(data) // Stringify the data for the response body
-        };
-    } catch (error) {
-        // Log the error for debugging purposes
-        console.error('Error fetching historical data from Alpha Vantage:', error);
-        
-        // Return an error response
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to fetch historical data from Alpha Vantage' })
-        };
-    }
-};
+  try {
+    // Extract parameters from the event object
+    const symbol = event.symbol || event.queryStringParameters?.symbol;
 
-/**
- * Instructions for updating the app's configuration:
- * 
- * 1. Open your main entry file (e.g., main.tsx or App.tsx)
- * 2. Import the Amplify configuration function:
- *    import { Amplify } from 'aws-amplify';
- * 
- * 3. Add or update the Amplify configuration:
- * 
- * Amplify.configure({
- *   API: {
- *     endpoints: [
- *       {
- *         name: "StockQuoteAPI",
- *         endpoint: "https://your-api-gateway-url.amazonaws.com/prod"
- *       }
- *     ]
- *   }
- * });
- * 
- * Replace 'https://your-api-gateway-url.amazonaws.com/prod' with your actual API Gateway URL.
- * 
- * 4. If you have separate configurations for different environments, make sure to update all relevant files.
- * 
- * 5. In your StockQuote component, update the API calls to use the new endpoint:
- * 
- * const { data } = await API.get('StockQuoteAPI', '/historical', {
- *   queryStringParameters: {
- *     symbol: symbol,
- *     function_type: 'TIME_SERIES_DAILY'
- *   }
- * });
- * 
- * This configuration allows your React application to communicate with the newly created API Gateway and Lambda function.
- */
+    // Validate input parameters
+    if (!symbol) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Symbol parameter is required" })
+      };
+    }
+
+    // Construct the API URL for fetching historical data
+    const url = constructApiUrl(ALPHA_VANTAGE_BASE_URL, {
+      function: 'TIME_SERIES_DAILY',
+      symbol: symbol,
+      outputsize: 'full', // Always fetch full dataset
+      apikey: ALPHA_VANTAGE_API_KEY
+    });
+
+    // Fetch data from the AlphaVantage API
+    const data = await fetchData(url);
+
+    // Check if the response contains an error message
+    if (data['Error Message']) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: data['Error Message'] })
+      };
+    }
+
+    // Process the historical data
+    const processedData = processHistoricalData(data);
+
+    // Analyze the historical data
+    const analysisResult = analyzeHistoricalData(processedData);
+
+    // Prepare warnings if necessary
+    const warnings = [];
+    if (!analysisResult.hasFullYearData) {
+      warnings.push("Less than one year of historical data available.");
+    }
+    if (!analysisResult.hasRecentData) {
+      warnings.push("The most recent data point is more than a year old.");
+    }
+
+    // Return the response with data and metadata
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        data: processedData,
+        metadata: {
+          symbol: symbol,
+          dataPoints: analysisResult.dataPoints,
+          oldestDate: analysisResult.oldestDate,
+          newestDate: analysisResult.newestDate,
+          warnings: warnings
+        }
+      })
+    };
+  } catch (error) {
+    // Log the error and return a generic error response
+    console.error('Error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Internal server error' })
+    };
+  }
+};
