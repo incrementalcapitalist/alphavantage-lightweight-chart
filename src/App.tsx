@@ -1,9 +1,8 @@
 /**
  * @file App.tsx
- * @version 3.8.0
- * @description Main application component with enhanced UI, custom Amplify Authenticator, and updated styling
- * to match the StockQuote component and ensure consistency across the app. Includes improvements to layout
- * and styling of the authentication dialog, and implements the simplified AmplifyTheme.
+ * @version 4.0.0
+ * @description Main application component with enhanced UI, custom Amplify Authenticator, and updated styling.
+ * Now uses the Dashboard component instead of StockQuote.
  * @author Incremental Capitalist
  * @copyright 2024 Incremental Capital LLC
  * @license GNU GENERAL PUBLIC LICENSE V3
@@ -32,8 +31,8 @@ import '@fontsource/pt-sans-narrow';
 // Import logo image for branding
 import logoImage from "../public/logo512.png";
 
-// Import StockQuote component (main functionality of the app)
-import StockQuote from "./components/StockQuote";
+// Import the new Dashboard component
+import Dashboard from "./components/Dashboard"; 
 
 // Import custom Amplify theme (simplified version)
 import theme from './AmplifyTheme';
@@ -117,12 +116,12 @@ const App: React.FC = () => {
             {({ signOut, user }) => (
               // Container for authenticated content
               <View className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                {/* Render StockQuote component when user is authenticated */}
-                <StockQuote />
+                {/* Render Dashboard component when user is authenticated */}
+                <Dashboard />
                 {/* Sign out button */}
                 <Button
                   onClick={signOut} // Trigger sign out action
-                  className="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-150 ease-in-out" // Tailwind classes for button styling
+                  className="mt-8 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 transition duration-150 ease-in-out"
                 >
                   Sign Out
                 </Button>
