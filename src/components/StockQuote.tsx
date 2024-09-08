@@ -1,11 +1,11 @@
 /**
  * @file StockQuote.tsx
- * @version 3.6.0
+ * @version 3.7.0
  * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart,
  * integrated with AWS API Gateway. This component provides a user interface for entering a stock symbol,
  * fetching real-time and historical data from separate endpoints, and displaying it in both
  * tabular format and as a Heikin-Ashi chart. This version includes enhanced error handling,
- * improved symbol validation, and comprehensive inline documentation.
+ * improved symbol validation, comprehensive inline documentation, and JSDoc comments.
  * 
  * Key Features:
  * - Real-time stock data fetching from a dedicated Global Quote endpoint
@@ -42,8 +42,8 @@
  */
 
 // Import necessary dependencies from React and lightweight-charts
-import React, { useState, useEffect, useRef } from "react";
-import { createChart, IChartApi, ISeriesApi } from "lightweight-charts";
+import React, { useState, useEffect, useRef } from "react"; // Importing React and necessary hooks
+import { createChart, IChartApi, ISeriesApi } from "lightweight-charts"; // Importing chart creation and interface types from lightweight-charts
 
 // Global type declarations to ensure TypeScript recognizes these global objects
 declare global {
@@ -81,18 +81,18 @@ interface StockData {
  */
 interface HistoricalDataResponse {
   data: {
-    date: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
+    date: string; // The date of the data point
+    open: number; // The opening price
+    high: number; // The highest price
+    low: number; // The lowest price
+    close: number; // The closing price
+    volume: number; // The trading volume
   }[];
   metadata: {
-    symbol: string;
-    dataPoints: number;
-    oldestDate: string;
-    newestDate: string;
+    symbol: string; // The stock symbol
+    dataPoints: number; // The number of data points
+    oldestDate: string; // The oldest date in the dataset
+    newestDate: string; // The newest date in the dataset
   };
 }
 
@@ -139,16 +139,13 @@ const StockQuote: React.FC = () => {
    * @function fetchStockData
    */
   const fetchStockData = async () => {
-    // Trim the symbol to remove any leading or trailing whitespace
-    const trimmedSymbol = symbol.trim();
+    const trimmedSymbol = symbol.trim(); // Trim the symbol to remove any leading or trailing whitespace
     
-    // Input validation: check if the trimmed symbol is empty
-    if (!trimmedSymbol) {
+    if (!trimmedSymbol) { // Check if the trimmed symbol is empty
       setError({ message: "Please enter a stock symbol" }); // Set an error if the symbol is empty
       return; // Exit the function early if no symbol is provided
     }
 
-    // Reset states before making the API call
     setLoading(true); // Indicate that data fetching has started
     setError(null); // Clear any previous errors
     setStockData(null); // Clear any previous stock data
@@ -157,23 +154,19 @@ const StockQuote: React.FC = () => {
       // Fetch global quote data using the trimmed symbol
       const globalQuoteResponse = await fetch(`${API_BASE_URL}/globalquote?symbol=${trimmedSymbol}`);
       
-      // Check if the response is not OK (i.e., not 2xx status)
-      if (!globalQuoteResponse.ok) {
+      if (!globalQuoteResponse.ok) { // Check if the response is not OK (i.e., not 2xx status)
         throw new Error(`API returned status ${globalQuoteResponse.status}`);
       }
 
-      // Parse the JSON response
-      const globalQuoteData = await globalQuoteResponse.json();
+      const globalQuoteData = await globalQuoteResponse.json(); // Parse the JSON response
 
-      // Check if the response contains an error message
-      if (globalQuoteData.error) {
+      if (globalQuoteData.error) { // Check if the response contains an error message
         throw new Error(globalQuoteData.error);
       }
 
       setStockData(globalQuoteData); // Set the stock data in the component state
 
-      // Fetch historical data using the trimmed symbol
-      await fetchHistoricalData(trimmedSymbol);
+      await fetchHistoricalData(trimmedSymbol); // Fetch historical data using the trimmed symbol
     } catch (err) {
       handleError(err); // Handle any errors that occur during the fetch
     } finally {
@@ -188,48 +181,40 @@ const StockQuote: React.FC = () => {
    * @param {string} symbol - The stock symbol
    */
   const fetchHistoricalData = async (symbol: string): Promise<void> => {
-    // Check if the symbol is valid before making the API call
-    if (!symbol || symbol.trim() === '') {
+    const trimmedSymbol = symbol.trim(); // Trim the symbol to remove any leading or trailing whitespace
+    if (!trimmedSymbol) { // Check if the trimmed symbol is empty
       setError({ message: "Symbol is required for fetching historical data" });
       return; // Exit the function if the symbol is invalid
     }
 
     try {
       // Fetch historical data from the API using the provided symbol
-      const response = await fetch(`${API_BASE_URL}/historicaldata?symbol=${symbol}`);
+      const response = await fetch(`${API_BASE_URL}/historicaldata?symbol=${trimmedSymbol}`);
   
-      // Check if the response is not OK (i.e., not 2xx status)
-      if (!response.ok) {
+      if (!response.ok) { // Check if the response is not OK (i.e., not 2xx status)
         throw new Error(`API returned status ${response.status}`);
       }
   
-      // Parse the JSON response
-      const responseData = await response.json();
+      const responseData = await response.json(); // Parse the JSON response
       const data: HistoricalDataResponse = JSON.parse(responseData.body);
   
-      // Check if the response contains an error message
-      if ('error' in data) {
+      if ('error' in data) { // Check if the response contains an error message
         throw new Error(data.error as string);
       }
   
-      // Check if the data property is an array
-      if (!Array.isArray(data.data)) {
+      if (!Array.isArray(data.data)) { // Check if the data property is an array
         throw new Error('Invalid response format: data is not an array');
       }
   
-      // Calculate Heikin-Ashi data from the historical data
-      const heikinAshiData: HeikinAshiDataPoint[] = calculateHeikinAshi(data.data);
+      const heikinAshiData: HeikinAshiDataPoint[] = calculateHeikinAshi(data.data); // Calculate Heikin-Ashi data from the historical data
       
-      // Update the state with the calculated Heikin-Ashi data
-      setHeikinAshiData(heikinAshiData);
+      setHeikinAshiData(heikinAshiData); // Update the state with the calculated Heikin-Ashi data
   
-      // Log metadata if available
-      if (data.metadata) {
+      if (data.metadata) { // Log metadata if available
         console.log('Historical data metadata:', data.metadata);
       }
     } catch (error) {
-      // Log the error to the console
-      console.error('Error fetching historical data:', error);
+      console.error('Error fetching historical data:', error); // Log the error to the console
       
       // Set an error message in the component state
       if (error instanceof Error) {
@@ -292,24 +277,18 @@ const StockQuote: React.FC = () => {
    * @param {unknown} err - The error to handle
    */
   const handleError = (err: unknown) => {
-    // Log the full error details to the console for debugging
-    console.error("Error details:", err);
+    console.error("Error details:", err); // Log the full error details to the console for debugging
     
-    // Determine the error message based on the type of error
-    let errorMessage: string;
+    let errorMessage: string; // Variable to store the determined error message
     if (err instanceof Error) {
-      // If it's an Error object, use its message property
-      errorMessage = err.message;
+      errorMessage = err.message; // If it's an Error object, use its message property
     } else if (typeof err === "string") {
-      // If it's a string, use it directly
-      errorMessage = err;
+      errorMessage = err; // If it's a string, use it directly
     } else {
-      // For any other type, use a generic error message
-      errorMessage = "An unknown error occurred";
+      errorMessage = "An unknown error occurred"; // For any other type, use a generic error message
     }
     
-    // Set the error state with the determined message
-    setError({ message: errorMessage });
+    setError({ message: errorMessage }); // Set the error state with the determined message
   };
 
   // Effect hook for creating and updating the chart
@@ -319,11 +298,11 @@ const StockQuote: React.FC = () => {
       // If the chart doesn't exist, create it
       if (!chartRef.current) {
         chartRef.current = createChart(chartContainerRef.current, {
-          width: chartContainerRef.current.clientWidth,
-          height: 400,
+          width: chartContainerRef.current.clientWidth, // Set chart width to container width
+          height: 400, // Set chart height
           layout: {
-            background: { color: '#111827' }, // Dark background
-            textColor: '#C4B5FD', // Light purple text
+            background: { color: '#111827' }, // Set dark background color
+            textColor: '#C4B5FD', // Set light purple text color
           },
           grid: {
             vertLines: { visible: false }, // Hide vertical grid lines
@@ -341,12 +320,12 @@ const StockQuote: React.FC = () => {
       // If the Heikin-Ashi series doesn't exist, create it
       if (!heikinAshiSeriesRef.current) {
         heikinAshiSeriesRef.current = chartRef.current.addCandlestickSeries({
-          upColor: '#A855F7', // Purple color for up days
-          downColor: '#F97316', // Orange color for down days
-          borderUpColor: '#A855F7', // Border color for up days
-          borderDownColor: '#F97316', // Border color for down days
-          wickUpColor: '#A855F7', // Wick color for up days
-          wickDownColor: '#F97316', // Wick color for down days
+          upColor: '#A855F7', // Set purple color for up days
+          downColor: '#F97316', // Set orange color for down days
+          borderUpColor: '#A855F7', // Set border color for up days
+          borderDownColor: '#F97316', // Set border color for down days
+          wickUpColor: '#A855F7', // Set wick color for up days
+          wickDownColor: '#F97316', // Set wick color for down days
         });
       }
 
@@ -363,7 +342,7 @@ const StockQuote: React.FC = () => {
    * @param {React.KeyboardEvent<HTMLInputElement>} event - The key press event
    */
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter") { // Check if the pressed key is 'Enter'
       fetchStockData(); // Trigger fetchStockData when Enter key is pressed
     }
   };
