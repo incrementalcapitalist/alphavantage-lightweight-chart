@@ -1,0 +1,29 @@
+{
+  "name": "AlphaVantageAPI",
+  "description": "API for fetching stock data from AlphaVantage",
+  "version": "1.0.0",
+  "id": "38pcwkas5b",
+  "url": "https://6kdp1igdoe.execute-api.us-east-1.amazonaws.com/production",
+  "endpoints": [
+    {
+      "path": "/historicaldata",
+      "method": "GET",
+      "function": "fetchAlphaVantageHistoricalData"
+    },
+    {
+      "path": "/globalquote",
+      "method": "GET",
+      "function": "fetchAlphaVantageGlobalQuote"
+    }
+  ],
+  "cors": {
+    "allowOrigins": [
+      "https://incremental.capital",
+      "https://virtuous.finance",
+      "https://striketarget.ai"
+    ],
+    "allowMethods": ["GET", "OPTIONS"],
+    "allowHeaders": ["Content-Type", "Authorization"],
+    "maxAge": 3600
+  }
+}
