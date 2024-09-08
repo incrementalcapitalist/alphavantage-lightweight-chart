@@ -44,8 +44,6 @@
 // Import necessary dependencies
 import React, { useState, useEffect, useRef } from "react"; // Import React and necessary hooks for component functionality
 import { createChart, IChartApi, ISeriesApi } from "lightweight-charts"; // Import chart creation functions and types from lightweight-charts
-import { fetchAuthSession } from 'aws-amplify/auth'; // Import authentication and API functions from AWS Amplify
-import { ApiError, get } from 'aws-amplify/api';
 
 // Global type declarations to ensure TypeScript recognizes these global objects
 declare global {
@@ -142,6 +140,9 @@ const StockQuote: React.FC = () => {
    * @async
    * @function fetchStockData
    */
+
+  const API_BASE_URL = 'https://6kdp1igdoe.execute-api.us-east-1.amazonaws.com/production';
+
   const fetchStockData = async () => {
     // Input validation: check if the symbol is empty
     if (!symbol.trim()) {
@@ -155,109 +156,86 @@ const StockQuote: React.FC = () => {
     setStockData(null); // Clear any previous stock data
 
     try {
-      // Ensure we have a valid auth session before making the API call
-      await fetchAuthSession();
-
-      // Prepare the request details for logging and debugging
-      const requestDetails = {
-        apiName: 'StockQuoteAPI', // Name of the API configured in Amplify
-        path: '/globalquote', // Endpoint path for global quote data
-        options: {
-          queryParams: {
-            symbol: symbol // Pass the stock symbol as a query parameter
-          }
-        }
-      };
-
-      // Log the request details for debugging purposes
-      console.log("Request details:", JSON.stringify(requestDetails, null, 2));
-
-      // Make the API call using Amplify's get function
-      const { body, statusCode, headers } = await get(requestDetails).response;
-
-      // Log the response status and headers for debugging
-      console.log("Response status:", statusCode);
-      console.log("Response headers:", headers);
-
-      // Parse the response body as JSON
-      const globalQuoteResponse = await body.json();
-
-      // Log the parsed response for debugging
-      console.log("Global Quote Response:", globalQuoteResponse);
-
-      // Check if the status code indicates an error
-      if (statusCode !== 200) {
-        throw new Error(`API returned status ${statusCode}: ${JSON.stringify(globalQuoteResponse)}`);
+      // Fetch global quote data
+      const globalQuoteResponse = await fetch(`${API_BASE_URL}/globalquote?symbol=${symbol}`);
+      
+      if (!globalQuoteResponse.ok) {
+        throw new Error(`API returned status ${globalQuoteResponse.status}`);
       }
 
-      // Check if the response contains an error message
-      if (error) {
-        throw new Error();
+      const globalQuoteData = await globalQuoteResponse.json();
+
+      if (globalQuoteData.error) {
+        throw new Error(globalQuoteData.error); // Check if the status code indicates an error
       }
 
-      // Set the stock data in the component state
-      setStockData(globalQuoteResponse as StockData);
+      setStockData(globalQuoteData); // Set the stock data in the component state
 
-      // Fetch historical data for the chart
-      await fetchHistoricalData(symbol);
+      // Fetch historical data
+      await fetchHistoricalData(symbol); 
     } catch (err) {
-      // Handle any errors that occur during the fetch
-      handleError(err);
+      handleError(err); // Handle any errors that occur during the fetch
     } finally {
-      // Set loading to false when the fetch is complete (whether successful or not)
-      setLoading(false);
+      setLoading(false); // Set loading to false when the fetch is complete (whether successful or not)
     }
   };
 
   /**
-   * Fetches historical data for the given symbol
-   * @async
-   * @function fetchHistoricalData
-   * @param {string} symbol - The stock symbol
-   */
-  const fetchHistoricalData = async (symbol: string): Promise<void> => {
-    try {
-      // Fetch historical data using Amplify v6 API
-      const { body } = await get({
-        apiName: 'HistoricalDataAPI', // Name of the API configured in Amplify for historical data
-        path: '/historical', // Path for the historical data endpoint
-        options: {
-          queryParams: {
-            symbol: symbol // Pass the stock symbol as a query parameter
-          }
-        }
-      }).response; // Access the response property of the returned object
+ * Fetches historical data for the given symbol
+ * @async
+ * @function fetchHistoricalData
+ * @param {string} symbol - The stock symbol
+ */
+const fetchHistoricalData = async (symbol: string): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/historicaldata?symbol=${symbol}`);
 
-      // Parse the response body as JSON
-      const jsonData = await body.json();
-      
-      // Type guard to check if jsonData is AlphaVantageHistoricalResponse
-      if (!isAlphaVantageHistoricalResponse(jsonData)) {
-        throw new Error('Invalid response format');
-      }
-
-      const data: AlphaVantageHistoricalResponse = jsonData;
-
-      // Check for error message in the response
-      if ('Error Message' in data) {
-        throw new Error(data['Error Message'] as string);
-      }
-
-      const timeSeries = data['Time Series (Daily)'];
-      if (!timeSeries) {
-        throw new Error('No time series data found');
-      }
-
-      // Calculate Heikin-Ashi data from the time series
-      const heikinAshiData: HeikinAshiDataPoint[] = calculateHeikinAshi(timeSeries);
-      setHeikinAshiData(heikinAshiData); // Update the state with calculated Heikin-Ashi data
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to fetch historical data: ${error.message}`);
-      }
-      throw new Error('An unknown error occurred while fetching historical data');
+    if (!response.ok) {
+      throw new Error(`API returned status ${response.status}`);
     }
-  };
+
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    // Check if the data has the expected structure
+    if (!Array.isArray(data.data)) {
+      throw new Error('Invalid response format: data is not an array');
+    }
+
+    // Transform the data into the format expected by calculateHeikinAshi
+    const transformedData: AlphaVantageHistoricalResponse['Time Series (Daily)'] = {};
+    data.data.forEach((item: any) => {
+      transformedData[item.date] = {
+        '1. open': item.open.toString(),
+        '2. high': item.high.toString(),
+        '3. low': item.low.toString(),
+        '4. close': item.close.toString(),
+        '5. adjusted close': item.close.toString(), // Assuming adjusted close is the same as close
+        '6. volume': item.volume.toString(),
+        '7. dividend amount': '0', // Assuming no dividend info
+        '8. split coefficient': '1' // Assuming no split info
+      };
+    });
+
+    const heikinAshiData: HeikinAshiDataPoint[] = calculateHeikinAshi(transformedData);
+    setHeikinAshiData(heikinAshiData);
+
+    // Log metadata if available
+    if (data.metadata) {
+      console.log('Historical data metadata:', data.metadata);
+    }
+  } catch (error) {
+    console.error('Error fetching historical data:', error);
+    if (error instanceof Error) {
+      setError({ message: `Failed to fetch historical data: ${error.message}` });
+    } else {
+      setError({ message: 'An unknown error occurred while fetching historical data' });
+    }
+  }
+};
 
   /**
    * Type guard function to check if the data is AlphaVantageHistoricalResponse
