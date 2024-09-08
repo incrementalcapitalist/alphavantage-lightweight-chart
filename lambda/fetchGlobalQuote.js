@@ -11,25 +11,6 @@ const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
 const ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
 
 /**
- * Constructs the API URL with parameters
- * @param {string} baseUrl - The base URL of the API
- * @param {Object} params - The parameters to be added to the URL
- * @returns {string} The constructed URL
- */
-function constructApiUrl(baseUrl, params) {
-  // Create a new URL object
-  const url = new URL(baseUrl);
-  
-  // Append each parameter to the URL's search params
-  Object.entries(params).forEach(([key, value]) => {
-    url.searchParams.append(key, value);
-  });
-  
-  // Return the complete URL as a string
-  return url.toString();
-}
-
-/**
  * Fetches data from the specified URL
  * @param {string} url - The URL to fetch data from
  * @returns {Promise<Object>} A promise that resolves with the fetched data
@@ -41,16 +22,18 @@ function fetchData(url) {
       let data = '';
       
       // Accumulate data as it's received
-      response.on('data', (chunk) => {
-        data += chunk;
-      });
+      response.on('data', (chunk) => data += chunk);
       
-      // Resolve the promise with the complete data when the response ends
+      // Resolve the promise with the parsed data when the response ends
       response.on('end', () => {
-        resolve(JSON.parse(data));
+        try {
+          resolve(JSON.parse(data));
+        } catch (error) {
+          reject(new Error('Failed to parse API response'));
+        }
       });
     }).on('error', (error) => {
-      // Reject the promise if there's an error
+      // Reject the promise if there's an error with the request
       reject(error);
     });
   });
@@ -62,23 +45,30 @@ function fetchData(url) {
  * @returns {Promise<Object>} A promise that resolves with the API response
  */
 exports.handler = async (event) => {
-  // Extract the stock symbol from the event object
-  const symbol = event.arguments.symbol;
-  
-  // Construct the API URL for fetching the global quote
-  const apiUrl = constructApiUrl(ALPHA_VANTAGE_BASE_URL, {
-    function: 'GLOBAL_QUOTE',
-    symbol: symbol,
-    apikey: ALPHA_VANTAGE_API_KEY,
-  });
-  
   try {
+    // Extract symbol from various possible event structures
+    const symbol = event.symbol || event.queryStringParameters?.symbol || event.arguments?.symbol;
+    
+    // Check if symbol is provided
+    if (!symbol) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Symbol parameter is required" })
+      };
+    }
+
+    // Construct the API URL for fetching the global quote
+    const url = `${ALPHA_VANTAGE_BASE_URL}?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(symbol)}&apikey=${ALPHA_VANTAGE_API_KEY}`;
+    
     // Fetch data from the AlphaVantage API
-    const data = await fetchData(apiUrl);
+    const data = await fetchData(url);
     
     // Check if the response contains an error message
     if (data['Error Message']) {
-      throw new Error(data['Error Message']);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: data['Error Message'] })
+      };
     }
     
     // Extract the global quote data
@@ -86,13 +76,23 @@ exports.handler = async (event) => {
     
     // Check if quote data is available
     if (!quote || Object.keys(quote).length === 0) {
-      throw new Error('No data found for this symbol');
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: 'No data found for this symbol' })
+      };
     }
     
     // Return the successful response
-    return quote;
+    return {
+      statusCode: 200,
+      body: JSON.stringify(quote)
+    };
   } catch (error) {
-    // Throw an error to be handled by the GraphQL resolver
-    throw new Error(`Failed to fetch global quote: ${error.message}`);
+    // Log the error and return a generic error response
+    console.error('Error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Internal server error' })
+    };
   }
 };
