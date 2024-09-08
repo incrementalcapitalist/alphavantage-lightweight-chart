@@ -1,11 +1,11 @@
 /**
  * @file StockQuote.tsx
- * @version 3.5.0
+ * @version 3.6.0
  * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart,
  * integrated with AWS API Gateway. This component provides a user interface for entering a stock symbol,
  * fetching real-time and historical data from separate endpoints, and displaying it in both
- * tabular format and as a Heikin-Ashi chart. This version includes enhanced error handling and
- * compatibility with the new API response format.
+ * tabular format and as a Heikin-Ashi chart. This version includes enhanced error handling,
+ * improved symbol validation, and comprehensive inline documentation.
  * 
  * Key Features:
  * - Real-time stock data fetching from a dedicated Global Quote endpoint
@@ -129,6 +129,8 @@ const StockQuote: React.FC = () => {
   const chartContainerRef = useRef<HTMLDivElement>(null); // Ref hook for the chart container div element
   const chartRef = useRef<IChartApi | null>(null); // Ref hook for storing the chart instance
   const heikinAshiSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null); // Ref hook for storing the Heikin-Ashi candlestick series
+
+  // Constant for API base URL
   const API_BASE_URL = 'https://6kdp1igdoe.execute-api.us-east-1.amazonaws.com/production'; // Base URL for the API
 
   /**
@@ -137,8 +139,11 @@ const StockQuote: React.FC = () => {
    * @function fetchStockData
    */
   const fetchStockData = async () => {
-    // Input validation: check if the symbol is empty
-    if (!symbol.trim()) {
+    // Trim the symbol to remove any leading or trailing whitespace
+    const trimmedSymbol = symbol.trim();
+    
+    // Input validation: check if the trimmed symbol is empty
+    if (!trimmedSymbol) {
       setError({ message: "Please enter a stock symbol" }); // Set an error if the symbol is empty
       return; // Exit the function early if no symbol is provided
     }
@@ -149,8 +154,8 @@ const StockQuote: React.FC = () => {
     setStockData(null); // Clear any previous stock data
 
     try {
-      // Fetch global quote data
-      const globalQuoteResponse = await fetch(`${API_BASE_URL}/globalquote?symbol=${symbol}`);
+      // Fetch global quote data using the trimmed symbol
+      const globalQuoteResponse = await fetch(`${API_BASE_URL}/globalquote?symbol=${trimmedSymbol}`);
       
       // Check if the response is not OK (i.e., not 2xx status)
       if (!globalQuoteResponse.ok) {
@@ -167,8 +172,8 @@ const StockQuote: React.FC = () => {
 
       setStockData(globalQuoteData); // Set the stock data in the component state
 
-      // Fetch historical data
-      await fetchHistoricalData(symbol);
+      // Fetch historical data using the trimmed symbol
+      await fetchHistoricalData(trimmedSymbol);
     } catch (err) {
       handleError(err); // Handle any errors that occur during the fetch
     } finally {
@@ -183,8 +188,14 @@ const StockQuote: React.FC = () => {
    * @param {string} symbol - The stock symbol
    */
   const fetchHistoricalData = async (symbol: string): Promise<void> => {
+    // Check if the symbol is valid before making the API call
+    if (!symbol || symbol.trim() === '') {
+      setError({ message: "Symbol is required for fetching historical data" });
+      return; // Exit the function if the symbol is invalid
+    }
+
     try {
-      // Fetch historical data from the API
+      // Fetch historical data from the API using the provided symbol
       const response = await fetch(`${API_BASE_URL}/historicaldata?symbol=${symbol}`);
   
       // Check if the response is not OK (i.e., not 2xx status)
