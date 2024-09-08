@@ -1,13 +1,14 @@
 /**
  * @file StockQuote.tsx
- * @version 3.4.0
+ * @version 3.5.0
  * @description React component for fetching and displaying stock quotes with a Heikin-Ashi chart,
- * integrated with AWS Amplify v6, AWS Lambda, and API Gateway. This component provides a user interface
- * for entering a stock symbol, fetching real-time and historical data from separate endpoints, and displaying it in both
- * tabular format and as a Heikin-Ashi chart. This version includes enhanced error logging and handling.
+ * integrated with AWS API Gateway. This component provides a user interface for entering a stock symbol,
+ * fetching real-time and historical data from separate endpoints, and displaying it in both
+ * tabular format and as a Heikin-Ashi chart. This version includes enhanced error handling and
+ * compatibility with the new API response format.
  * 
  * Key Features:
- * - Real-time stock data fetching using AWS Amplify v6 from a dedicated Global Quote endpoint
+ * - Real-time stock data fetching from a dedicated Global Quote endpoint
  * - Historical data retrieval from a separate Historical Data endpoint
  * - Heikin-Ashi chart rendering using lightweight-charts
  * - Responsive design with Tailwind CSS
@@ -15,15 +16,14 @@
  * 
  * Dependencies:
  * - React (^18.0.0)
- * - AWS Amplify (^6.0.0)
  * - lightweight-charts (^4.0.0)
  * - Tailwind CSS (^3.0.0)
  * 
  * API Integration:
- * - Uses AWS API Gateway (configured as 'StockQuoteAPI' in Amplify)
+ * - Uses AWS API Gateway
  * - Endpoints:
  *   - /globalquote: Fetches real-time stock data
- *   - /historical: Retrieves historical stock data for charting
+ *   - /historicaldata: Retrieves historical stock data for charting
  * 
  * Heikin-Ashi Calculation:
  * Heikin-Ashi candlesticks are a variation of traditional candlesticks, designed to filter out market noise
@@ -41,9 +41,9 @@
  * @license GNU GENERAL PUBLIC LICENSE V3
  */
 
-// Import necessary dependencies
-import React, { useState, useEffect, useRef } from "react"; // Import React and necessary hooks for component functionality
-import { createChart, IChartApi, ISeriesApi } from "lightweight-charts"; // Import chart creation functions and types from lightweight-charts
+// Import necessary dependencies from React and lightweight-charts
+import React, { useState, useEffect, useRef } from "react";
+import { createChart, IChartApi, ISeriesApi } from "lightweight-charts";
 
 // Global type declarations to ensure TypeScript recognizes these global objects
 declare global {
@@ -76,28 +76,23 @@ interface StockData {
 }
 
 /**
- * Represents the structure of the Alpha Vantage API response for historical data
- * @typedef {Object} AlphaVantageHistoricalResponse
+ * Represents the structure of the historical data response
+ * @typedef {Object} HistoricalDataResponse
  */
-interface AlphaVantageHistoricalResponse {
-  'Meta Data': {
-    '1. Information': string;
-    '2. Symbol': string;
-    '3. Last Refreshed': string;
-    '4. Output Size': string;
-    '5. Time Zone': string;
-  };
-  'Time Series (Daily)': {
-    [date: string]: {
-      '1. open': string;
-      '2. high': string;
-      '3. low': string;
-      '4. close': string;
-      '5. adjusted close': string;
-      '6. volume': string;
-      '7. dividend amount': string;
-      '8. split coefficient': string;
-    };
+interface HistoricalDataResponse {
+  data: {
+    date: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+  }[];
+  metadata: {
+    symbol: string;
+    dataPoints: number;
+    oldestDate: string;
+    newestDate: string;
   };
 }
 
@@ -134,15 +129,13 @@ const StockQuote: React.FC = () => {
   const chartContainerRef = useRef<HTMLDivElement>(null); // Ref hook for the chart container div element
   const chartRef = useRef<IChartApi | null>(null); // Ref hook for storing the chart instance
   const heikinAshiSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null); // Ref hook for storing the Heikin-Ashi candlestick series
+  const API_BASE_URL = 'https://6kdp1igdoe.execute-api.us-east-1.amazonaws.com/production'; // Base URL for the API
 
   /**
    * Fetches stock data from the AWS Lambda function via API Gateway
    * @async
    * @function fetchStockData
    */
-
-  const API_BASE_URL = 'https://6kdp1igdoe.execute-api.us-east-1.amazonaws.com/production';
-
   const fetchStockData = async () => {
     // Input validation: check if the symbol is empty
     if (!symbol.trim()) {
@@ -159,20 +152,23 @@ const StockQuote: React.FC = () => {
       // Fetch global quote data
       const globalQuoteResponse = await fetch(`${API_BASE_URL}/globalquote?symbol=${symbol}`);
       
+      // Check if the response is not OK (i.e., not 2xx status)
       if (!globalQuoteResponse.ok) {
         throw new Error(`API returned status ${globalQuoteResponse.status}`);
       }
 
+      // Parse the JSON response
       const globalQuoteData = await globalQuoteResponse.json();
 
+      // Check if the response contains an error message
       if (globalQuoteData.error) {
-        throw new Error(globalQuoteData.error); // Check if the status code indicates an error
+        throw new Error(globalQuoteData.error);
       }
 
       setStockData(globalQuoteData); // Set the stock data in the component state
 
       // Fetch historical data
-      await fetchHistoricalData(symbol); 
+      await fetchHistoricalData(symbol);
     } catch (err) {
       handleError(err); // Handle any errors that occur during the fetch
     } finally {
@@ -181,94 +177,71 @@ const StockQuote: React.FC = () => {
   };
 
   /**
- * Fetches historical data for the given symbol
- * @async
- * @function fetchHistoricalData
- * @param {string} symbol - The stock symbol
- */
-const fetchHistoricalData = async (symbol: string): Promise<void> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/historicaldata?symbol=${symbol}`);
-
-    if (!response.ok) {
-      throw new Error(`API returned status ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error);
-    }
-
-    // Check if the data has the expected structure
-    if (!Array.isArray(data.data)) {
-      throw new Error('Invalid response format: data is not an array');
-    }
-
-    // Transform the data into the format expected by calculateHeikinAshi
-    const transformedData: AlphaVantageHistoricalResponse['Time Series (Daily)'] = {};
-    data.data.forEach((item: any) => {
-      transformedData[item.date] = {
-        '1. open': item.open.toString(),
-        '2. high': item.high.toString(),
-        '3. low': item.low.toString(),
-        '4. close': item.close.toString(),
-        '5. adjusted close': item.close.toString(), // Assuming adjusted close is the same as close
-        '6. volume': item.volume.toString(),
-        '7. dividend amount': '0', // Assuming no dividend info
-        '8. split coefficient': '1' // Assuming no split info
-      };
-    });
-
-    const heikinAshiData: HeikinAshiDataPoint[] = calculateHeikinAshi(transformedData);
-    setHeikinAshiData(heikinAshiData);
-
-    // Log metadata if available
-    if (data.metadata) {
-      console.log('Historical data metadata:', data.metadata);
-    }
-  } catch (error) {
-    console.error('Error fetching historical data:', error);
-    if (error instanceof Error) {
-      setError({ message: `Failed to fetch historical data: ${error.message}` });
-    } else {
-      setError({ message: 'An unknown error occurred while fetching historical data' });
-    }
-  }
-};
-
-  /**
-   * Type guard function to check if the data is AlphaVantageHistoricalResponse
-   * @function isAlphaVantageHistoricalResponse
-   * @param {any} data - The data to check
-   * @returns {boolean} True if the data is AlphaVantageHistoricalResponse, false otherwise
+   * Fetches historical data for the given symbol
+   * @async
+   * @function fetchHistoricalData
+   * @param {string} symbol - The stock symbol
    */
-  function isAlphaVantageHistoricalResponse(data: any): data is AlphaVantageHistoricalResponse {
-    // Check if data is an object and has the required properties
-    return (
-      data &&
-      typeof data === 'object' &&
-      'Meta Data' in data &&
-      'Time Series (Daily)' in data
-    );
-  }
+  const fetchHistoricalData = async (symbol: string): Promise<void> => {
+    try {
+      // Fetch historical data from the API
+      const response = await fetch(`${API_BASE_URL}/historicaldata?symbol=${symbol}`);
+  
+      // Check if the response is not OK (i.e., not 2xx status)
+      if (!response.ok) {
+        throw new Error(`API returned status ${response.status}`);
+      }
+  
+      // Parse the JSON response
+      const responseData = await response.json();
+      const data: HistoricalDataResponse = JSON.parse(responseData.body);
+  
+      // Check if the response contains an error message
+      if ('error' in data) {
+        throw new Error(data.error as string);
+      }
+  
+      // Check if the data property is an array
+      if (!Array.isArray(data.data)) {
+        throw new Error('Invalid response format: data is not an array');
+      }
+  
+      // Calculate Heikin-Ashi data from the historical data
+      const heikinAshiData: HeikinAshiDataPoint[] = calculateHeikinAshi(data.data);
+      
+      // Update the state with the calculated Heikin-Ashi data
+      setHeikinAshiData(heikinAshiData);
+  
+      // Log metadata if available
+      if (data.metadata) {
+        console.log('Historical data metadata:', data.metadata);
+      }
+    } catch (error) {
+      // Log the error to the console
+      console.error('Error fetching historical data:', error);
+      
+      // Set an error message in the component state
+      if (error instanceof Error) {
+        setError({ message: `Failed to fetch historical data: ${error.message}` });
+      } else {
+        setError({ message: 'An unknown error occurred while fetching historical data' });
+      }
+    }
+  };
 
   /**
    * Calculates Heikin-Ashi candles from time series data
    * @function calculateHeikinAshi
-   * @param {AlphaVantageHistoricalResponse['Time Series (Daily)']} timeSeries - The time series data
+   * @param {HistoricalDataResponse['data']} data - The historical price data
    * @returns {HeikinAshiDataPoint[]} The calculated Heikin-Ashi data
    */
-  const calculateHeikinAshi = (timeSeries: AlphaVantageHistoricalResponse['Time Series (Daily)']): HeikinAshiDataPoint[] => {
+  const calculateHeikinAshi = (data: HistoricalDataResponse['data']): HeikinAshiDataPoint[] => {
     const heikinAshiData: HeikinAshiDataPoint[] = []; // Array to store Heikin-Ashi data points
     let prevHA: HeikinAshiDataPoint | null = null; // Previous Heikin-Ashi data point
 
     // Iterate through each entry in the time series
-    Object.entries(timeSeries).forEach(([date, values], index) => {
-      const open = parseFloat(values['1. open']); // Parse open price
-      const high = parseFloat(values['2. high']); // Parse high price
-      const low = parseFloat(values['3. low']); // Parse low price
-      const close = parseFloat(values['4. close']); // Parse close price
+    data.forEach((item, index) => {
+      const { date, open, high, low, close } = item;
 
       let haOpen, haClose, haHigh, haLow;
 
@@ -399,12 +372,15 @@ const fetchHistoricalData = async (symbol: string): Promise<void> => {
   // Render the component
   return (
     <div className="bg-gray-900 text-purple-300 shadow-lg rounded-lg p-8 font-['PT_Sans_Narrow']">
+      {/* Main title */}
       <h1 className="text-4xl font-bold mb-8 text-center text-purple-200 uppercase">
         Essential Technical Analysis
       </h1>
+      {/* Subtitle */}
       <h2 className="text-2xl font-semibold mb-6 text-center text-purple-300 uppercase">
         Price Pattern
       </h2>
+      {/* Input field for stock symbol */}
       <div className="mb-6">
         <input
           type="text"
@@ -416,6 +392,7 @@ const fetchHistoricalData = async (symbol: string): Promise<void> => {
           aria-label="Stock Symbol"
         />
       </div>
+      {/* Button to fetch data */}
       <button
         onClick={fetchStockData}  // Trigger fetchStockData when button is clicked
         disabled={loading} // Disable button when loading
@@ -424,14 +401,17 @@ const fetchHistoricalData = async (symbol: string): Promise<void> => {
       >
         {loading ? "FETCHING DATA..." : "Lightweight Chart"}
       </button>
+      {/* Error message display */}
       {error && (
         <p className="text-center mt-4 text-red-400 bg-red-900 p-3 rounded-md uppercase" role="alert">
           Error: {error.message}
         </p>
       )}
+      {/* Chart container */}
       <div className="mt-8 p-4 bg-gray-800 rounded-lg shadow-inner">
         <div ref={chartContainerRef} className="w-full h-[400px]"></div>
       </div>
+      {/* Stock data table */}
       {stockData && (
         <div className="mt-8 overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-700">
