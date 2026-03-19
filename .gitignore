@@ -137,3 +137,5 @@ dist
 amplify_outputs*
 amplifyconfiguration*
 aws-exports.js
+
+.claude/settings.local.json
